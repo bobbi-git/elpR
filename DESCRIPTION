@@ -1,11 +1,15 @@
 Package: elpR
 Type: Package
-Title: What the Package Does (Title Case)
+Title: The Elephant Listening Project File Management (Title Case)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Bobbi J. Estabrook
+Maintainer: Bobbi J. Estabrook <bje37@cornell.edu>
+Description: This package work with SwiftOne sonud files, Raven selection tables,
+elephant rumble detecctor output, gunshot detector output. The scripts will 
+ - check sound file quality
+ - prepapre sounds for analysis
+ - prepare selection tables for analysis
+ - summarize detection results
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

@@ -1,0 +1,57 @@
+# PNNN gunshot detector output selection table restructuring for the Congo team
+
+# bje37
+# bobbi.estabrook@cornell.edu
+
+# REQUIREMENTS
+# - all detector output saved to one folder (no site sub-folders)
+# - detector output from the gunshot data template detector
+# - num_events file created by the DTD app
+
+
+rm(list = ls())
+
+#1) Initialize the function in the function file
+
+#2) Install packages (if not already installed)
+# install.packages(c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate",
+# "filesstrings"))
+
+#3) Load packages
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(bigreadr)
+library(openxlsx)
+library(stringr)
+library(filesstrings)
+library(gsubfn)
+library(lubridate)
+
+#4) Set fields
+# Update the fields below and run each line
+deployment_name <- "nn_202402_feb" # official name of the deployment
+deployment_num <- "19" # update with current deployment number
+disk_ID <- "00" # name of the disk where the sound files are stored (alphanumeric)
+sites <- "PNNN_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
+sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
+
+#5) Provide Detector information
+Detector <- "DTDguns8" # For the gunshot data template detector:DTDguns8
+Detector_ScoreThreshold <- 0.53 # The score that the detector was run with
+Filter_ScoreThreshold <- 0.53 # The score that the final processed tables should be filtered by
+
+# # 5) Run these lines of code, but do not change them
+gun_selection_tables <- '~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/gunshot' # directory with the raw detector selection tables (they can be in subfolders)
+# removed "/raw" from last line
+
+# 6) Run function below
+guns8p53_Selection_Table_Restructure(gun_selection_tables)
+
+# After all the files are complete:
+# move the file (see list below) to the appropriate folders on the server, and delete the files from the raw, final, and processed folders
+# - Move files from:
+#   - List of empty selection tables: R\Bobbi_Scripts\PNNNR\Files\Empty_HH_Tables\gunshot
+#   - Final selection tables: R\Bobbi_Scripts\PNNNR\Files\HH_Tables\gunshot\final
+#   - intermediate selection tables: R\Bobbi_Scripts\PNNNR\Files\HH_Tables\gunshot\processed (delete?)
+#   - Zero detection selection tables: R\Bobbi_Scripts\PNNNR\Files\zero_days_SSTs\gunshot
