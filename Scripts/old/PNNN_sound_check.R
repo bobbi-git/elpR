@@ -18,14 +18,14 @@ library(ggplot2)
 #3) Run the pnnn_sound_check_function.R function to check the sound files for problems
 
 ### UPDATE THESE FIELDS ####
-sound_path <- "//ag-clo-159NAS105.ad.cornell.edu/L/ELP/Projects/Nouabale/dep15/testing_bje/sound" # choose top folder path to sound files
-
-deployment_name <- "nn_202210_oct"
+sound_path <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_sounds/dz_202305_may_dep01-WAV-8kHz" # choose top folder path to sound files
+deployment_name <- "dz_202305_may" # official name of the deployment
 deployment_num <- "01" # update with current deployment number
-disk_ID <- "07" # name of the disk where the sound files are stored
-
+disk_ID <- "01" # name of the disk where the sound files are stored (alphanumeric)
 sample_rate <- 8000 # sample rate in Hz
-
+fileDurationMin <- 60 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
+sound_file_ext <- ".wav" # the extension of the sound file (e.g., ".wav",".flac", or ".aiff"). FLAC files require a flac program installed on PC
+sites <- "DSPA_DZ_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
 
 # Run the function
 sound.check(sound_path)
