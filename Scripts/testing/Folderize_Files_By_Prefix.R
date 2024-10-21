@@ -4,23 +4,49 @@
 rm(list = ls())
 
 ### For selection tables containing multiple sites ###
+# create a new site-specific folder for site-specific files to be moved to from current location
 
 library(filesstrings)
 library(stringr)
 
-setwd('~/PNNNR/Files/HH_Tables/gunshot/raw') # parent folder containing all site folders
+setwd('L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_sounds/dz_202307_jul_dep02') # parent folder containing all site folders
+path = "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_sounds/dz_202307_jul_dep02" # path to file
 
+snapshot <- fileSnapshot(path, recursive= TRUE) # creates snapshot of info before moving files
+snapshot$info
 
-
-
+#### Set Paths in dataframe from file names ####
 # current file paths
-old_paths <- dir(path=path, full.names = TRUE,pattern="*.wav",recursive=TRUE) # index paths
+current_path <- as.data.frame(dir(path=path, full.names = TRUE,pattern="*.wav",recursive=FALSE)) # index paths
+colnames(current_path) <-"Current Path"
 
-# new file paths to move to
-new_paths <- substr(old_paths,1,65)
+# extract site name (requires specific naming convention)
+current_path$Site <- substr(str_match(current_path$`Current Path`,"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_20")[,1],1,
+                            nchar(str_match(current_path$`Current Path`,"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_20")[,1])-3)
 
-#perform file move
-file.move(old_paths,new_paths,overwrite=FALSE)
+# extract sound file name
+current_path$sound <- basename(current_path$`Current Path`)
+
+# create new file paths to move to
+current_path$`New Path` <- paste(path,current_path$Site,sep="/")
+
+
+#### create new folders in path from unique site names ####
+# get unique names
+sites <- unique(current_path$Site)
+
+# create new empty folders in path
+for (i in 1:length(sites)){
+  if(!dir.exists(paste(path,sites[i],sep="/"))){
+     dir.create(paste(path,sites[i],sep="/"))}
+}
+
+
+#### move from path to new path (don't include file name in new path) ####
+file.move(current_path$`Current Path`,current_path$`New Path`,overwrite=FALSE)
+
+# add a progress bar or something?
+#print(paste0(i," of ", nrow(check)," complete"," ",Sys.time())
 
 
 

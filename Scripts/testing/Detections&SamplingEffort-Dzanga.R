@@ -15,6 +15,15 @@
 # bje37@cornell.edu
 # updated: Sept 2023
 
+## ADD site strata ()
+## Add nigh and day cat
+# overlay plot and individual site plot (all sites)
+# plot average per strata by unit time with rendline (one strata per panel)
+# daily summaries
+# mean monthly plot per strata
+# add lat long
+
+
 
 ###### READ FROM BASE TABLES IN BASETABLES FOLDER ######
 
@@ -564,6 +573,10 @@ proj_dep_name <-paste(project_name,deployment_num,detector_name,sep="_") #defaul
 
 
 
+#### Summarize by site type, day and night ####
+  # rumbles per day per week
 
+
+#### Summarize by deployment ####
 
 

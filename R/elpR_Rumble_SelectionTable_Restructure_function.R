@@ -9,12 +9,12 @@
 # - add sound_check info to the selection tables (sound check should have been run BEFORE this step)
 # - add the random days designation to the 3 randomly selected days per week
 # - ignore detections on sound files that were marked with 'y' (bad sound file) or 'e' (bad sound file for elephant analysis) in the sound check excel sheet
-# - save selection tables that are filtered by score and random dates with maximum of 2000 selections per table (in the PNNNR\File\Rumble\Final folder)
-# - count the total number of detections per site and day by score 0.2, 0.4, and 0.4 random days and sound file duration (added to the sound check excel sheet as a tab, saved in the PNNNR\Files|sound_check folder)
+# - save selection tables that are filtered by score and random dates with maximum of 2000 selections per table (in the Packages/elpR\File\Rumble\Final folder)
+# - count the total number of detections per site and day by score 0.2, 0.4, and 0.4 random days and sound file duration (added to the sound check excel sheet as a tab, saved in the Packages/elpR\Files|sound_check folder)
 # - calculates the total number of detections per hour for each sound file
 # - plot the total detections per score of 0.2 and 0.4 rand as .png files (saved in num_events folder)
 # - count the total number of days without detections at 0.2 and 0.4
-# - save a selection table of sound files without detections at score 0.4 for random dates (saved in the PNNNR\Fileszero_days_SSTs\rumble folder)
+# - save a selection table of sound files without detections at score 0.4 for random dates (saved in the Packages/elpR\Fileszero_days_SSTs\rumble folder)
 
 # TO DO
 # check that all selections for have a unique selection ID
@@ -36,9 +36,9 @@ HH_Selection_Table_Restructure <- function (x) {
   standard_name_disk <- paste(deployment_name,"_dep",deployment_num,"_d",disk_ID, sep="") # output file names (deployment name, number, disk)
 
   # Hori_Harm folders
-  processed_HH <- "~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/processed/"
-  path_p4_rand <- "~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p4_rand_raw/"
-  raw_selection_tables <- '~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/raw' # directory with the raw detector selection tables (they can be in subfolders)
+  processed_HH <- "~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/processed/"
+  path_p4_rand <- "~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p4_rand_raw/"
+  raw_selection_tables <- '~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/raw' # directory with the raw detector selection tables (they can be in subfolders)
 
 
   # create empty sub-folders to receive the selection tables in the processed folder
@@ -46,7 +46,7 @@ HH_Selection_Table_Restructure <- function (x) {
   for(z in 1:length(HH_folders)){
    if (!dir.exists(paste(processed_HH,HH_folders[z],sep=""))) dir.create(paste(processed_HH,HH_folders[z],sep=""))
     }
-  # HH_folders <- read.table(paste("~/R/Bobbi_Scripts/PNNNR/Files/sites/",sites, sep=""),header=FALSE,row.names=NULL)
+  # HH_folders <- read.table(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sites/",sites, sep=""),header=FALSE,row.names=NULL)
   # for(z in 1:nrow(HH_folders)){
   #  if (!dir.exists(paste(processed_HH,HH_folders[z,],sep=""))) dir.create(paste(processed_HH,HH_folders[z,],sep=""))
   #   }
@@ -55,14 +55,14 @@ HH_Selection_Table_Restructure <- function (x) {
 
 
   #### ELP RANDOM DAYS PER WEEK ####
-  elp_rand<-read.table('~/R/Bobbi_Scripts/PNNNR/Files/rand-days/Rand_dates.csv',header=TRUE,sep="\t",row.names=NULL) #read in rand file that contains 3 random days per week of the survey
+  elp_rand<-read.table('~/R/Bobbi_Scripts/Packages/elpR/Files/rand-days/Rand_dates.csv',header=TRUE,sep="\t",row.names=NULL) #read in rand file that contains 3 random days per week of the survey
   elp_rand$Date<-format(as.Date(elp_rand$Date,"%d-%b-%y"),"%m/%d/%Y") #tell R what the date structure is and read it as date and format the date to match Raven selection tables
   elp_rand$"Rand"<-"rand" #create a column that is populated with "rand" to merge with the selection tables
   names(elp_rand)[names(elp_rand)=='Date']<-'Begin Date' #change the name of the Days column to "File Date" to match with the File Date column in the selection table
 
 
   #### Cross-reference sound files with known errors (see Sound_Quality_Check r script) ####
-  sound_check <- read.xlsx(paste("~/R/Bobbi_Scripts/PNNNR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),
+  sound_check <- read.xlsx(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),
                            sheet="Sounds",colNames=TRUE,check.names=FALSE,sep.names = " ") # read in the sound_check file that was created in the first step
   sound_check$'Sound Problems'<-paste(sound_check$`File Duration Check`, sound_check$'File Length Check',sound_check$`Sound Gap Check`,sound_check$"SampleRate",
                                       sound_check$"Deployment Notes",sound_check$"Sound Problems", sound_check$`Exclude (y/e)`,sep = "; ") # concatenate the sound problems into one column
@@ -84,7 +84,7 @@ HH_Selection_Table_Restructure <- function (x) {
     file_small$Date <- as.POSIXct(file_small$Date,format='%Y%m%d',origin = "1970-01-01",tz="Africa/Brazzaville") # convert format of start date and time to proper data and time format
     file_small$`Deployment Name` <- deployment_name
     file_small$'Detection Score Threshold' <- Detector_ScoreThreshold
-    write.table(file_small, file=paste('~/R/Bobbi_Scripts/PNNNR/Files/Empty_Tables/rumble/',standard_name_disk,"_Empty_Tables_",Detector,"_p",sub("\\d.","",Detector_ScoreThreshold),'.txt',sep=""),
+    write.table(file_small, file=paste('~/R/Bobbi_Scripts/Packages/elpR/Files/Empty_Tables/rumble/',standard_name_disk,"_Empty_Tables_",Detector,"_p",sub("\\d.","",Detector_ScoreThreshold),'.txt',sep=""),
                 sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save a .csv listing the files with no detections
   }
 
@@ -149,8 +149,8 @@ HH_Selection_Table_Restructure <- function (x) {
 # if: "Error in order(merge_df$"Begin File", merge_df$"File Offset (s)") : argument 1 is not a vector" check file sizes in folder (they are all likely 1 kb and the folder should be deleted, then rerun this section)
 
   #### MERGE ALL SELECTION TABLES (this section should work for files that are and are not already in site-wise folders)####
-  setwd("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/processed/")
-  list_txt = list.files(path="~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/processed/", full.names = TRUE,pattern="*.txt",recursive = TRUE) #make a list of all the files within the subfolder j
+  setwd("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/processed/")
+  list_txt = list.files(path="~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/processed/", full.names = TRUE,pattern="*.txt",recursive = TRUE) #make a list of all the files within the subfolder j
   all_txt_df <- lapply(list_txt, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE)})  # Read the files in, assuming tab separator
   merge_df <- do.call("rbind", lapply(all_txt_df, as.data.frame)) # Combine them (the events cross over between sites and cuts off the last site - use the rbind.fill function)
   merge_df<-if(!is.null(merge_df)){merge_df[order(merge_df$"Begin File",merge_df$"File Offset (s)"),]}
@@ -168,12 +168,12 @@ files <- list.files(path=processed_HH,pattern=paste(standard_name_disk,sep=""),a
 file_size <- files[sapply(files, file.size) > 200]
 
 # create directories to receive the processed selection tables
-if(!dir.exists(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p", sub("\\d.","",Filter_ScoreThreshold),"_rand_raw/",sep=""))){
-       dir.create(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Filter_ScoreThreshold),"_rand_raw/",sep=""))}
-if(!dir.exists(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Filter_ScoreThreshold),"_nonrand_raw/",sep=""))){
-       dir.create(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Filter_ScoreThreshold),"_nonrand_raw/",sep=""))}
-if(!dir.exists(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/",sep=""))){
-       dir.create(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/",sep=""))}
+if(!dir.exists(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p", sub("\\d.","",Filter_ScoreThreshold),"_rand_raw/",sep=""))){
+       dir.create(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Filter_ScoreThreshold),"_rand_raw/",sep=""))}
+if(!dir.exists(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Filter_ScoreThreshold),"_nonrand_raw/",sep=""))){
+       dir.create(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Filter_ScoreThreshold),"_nonrand_raw/",sep=""))}
+if(!dir.exists(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/",sep=""))){
+       dir.create(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/",sep=""))}
 
 # filter tables and move them to cooresponding folders in the final folder
 for (q in 1:length(file_size)){
@@ -189,20 +189,20 @@ for (q in 1:length(file_size)){
             elp_th2_all<-filter(elp_sound,elp_sound$"Score"<Filter_ScoreThreshold) # filter the random and non random days for events between initial detection score and new filtered score threshold
 
             # write the random table with selections that have score > the threshold
-             write.table(elp_th_rand,file=paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",
+             write.table(elp_th_rand,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",
                                               sub("\\d.","",Filter_ScoreThreshold),"_rand_raw/",# folder name
                                               substr(file_size[q],1,nchar(file_size[q])-7),"p", sub("\\d.","",Filter_ScoreThreshold),"_rand_raw.txt",sep=""), # file name
                        sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE) #save the random table for score > threshold)
 
 
             # write the non random table with selections that have score > the threshold
-              write.table(elp_th_nonrand,file=paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",
+              write.table(elp_th_nonrand,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",
                                               sub("\\d.","",Filter_ScoreThreshold),"_nonrand_raw/", # folder name
                                               substr(file_size[q],1,nchar(file_size[q])-7),"p",sub("\\d.","",Filter_ScoreThreshold),"_nonrand_raw.txt",sep=""), # file name
                     sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE) #save the nonrandom dates table for score > threshold
 
             # write a rand and non rand table with score below selection
-              write.table(elp_th2_all,file=paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p",
+              write.table(elp_th2_all,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",
                                              sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/", # folder name
                                              substr(file_size[q],1,nchar(file_size[q])-7),sub("\\d.","p",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw.txt",sep=""), # file name
                     sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE) # save all other detections < threshold
@@ -210,7 +210,7 @@ for (q in 1:length(file_size)){
 }
 # move the remaining selection tables to the final p2_raw folder
 for (h in 1:length(files)){
- file.move(paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/processed/",files[h],sep=""),"~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p2_raw/",overwrite = TRUE)
+ file.move(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/processed/",files[h],sep=""),"~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p2_raw/",overwrite = TRUE)
 }
 
 # ##### Merge ALL p4 rand selection tables and split into 2000 events (optional, not required if site-wise tables preferred) ####
@@ -219,11 +219,11 @@ for (h in 1:length(files)){
 #   merge_files <- do.call("rbind", lapply(all_txt_files, as.data.frame)) # Combine them into a data frame
 #   sort_files<-merge_files[order(merge_files$"Begin File",merge_files$"File Offset (s)"),] # sort by Begin File and File Offset
 #   sort_files$"Selection"<- seq.int(nrow(sort_files)) #renumber the selections for Raven
-#   write.table(sort_files,file=paste("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p4_rand_counted/",deployment_name,"_dep",deployment_num,"_elp_merged_ALL.txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save table of all events
+#   write.table(sort_files,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p4_rand_counted/",deployment_name,"_dep",deployment_num,"_elp_merged_ALL.txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save table of all events
 #
 # # # #split table in to 2000 events
-# setwd("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p4_rand_counted/")
-#   merged_p4_tables <- list.files("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p4_rand_counted/",pattern = "_elp_merged_ALL.txt")
+# setwd("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p4_rand_counted/")
+#   merged_p4_tables <- list.files("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p4_rand_counted/",pattern = "_elp_merged_ALL.txt")
 #    for (k in 1:length(merged_p4_tables)){
 #     split_file(merged_p4_tables[k],2000,prefix_out = paste(deployment_name,"_dep",deployment_num,"_HH6p2_p",sub("\\d.","",Filter_ScoreThreshold),"_rand_raw_XXX",sep=""),repeat_header = TRUE) #if this gives and error, check that the "_test.txt" file isn't " _test.txt" with a space. If so, delete the space
 #    }
@@ -238,8 +238,8 @@ for (h in 1:length(files)){
   ele_sounds2$Date <- format(as.Date(str_extract(ele_sounds2$'Begin File' ,"\\d{8}.\\d{6}"),"%Y%m%d"),"%m/%d/%Y")
 
   # detections
-  setwd("~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p2_raw")
-  det_files <- list.files(path="~/R/Bobbi_Scripts/PNNNR/Files/Selection_Tables/rumble/final/p2_raw",
+  setwd("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p2_raw")
+  det_files <- list.files(path="~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p2_raw",
                           pattern=standard_name_disk,
                           all.files=TRUE, recursive=TRUE,full.names=FALSE)
   det_files <- lapply(det_files, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE)})  # Read the files in, assuming tab separator
@@ -312,12 +312,12 @@ for (h in 1:length(files)){
   ele_sound_dets_sum <- ele_sound_dets_sum[c("Date","Site","Rand","Begin File","File Duration (s)","Duration Minutes","Duration (Hrs)","Exclude (y/e)",
                                              "Sum Rumbles > Detector Threshold" ,"Sum Rumbles > Filtered Detector Threshold","Sum Rumbles for Rand Days > Filtered Detector Threshold",
                                              "Dets_per_Hr","Dets_per_Hr_ScoreThreshold","Dets_per_Hr_ScoreThreshold_rand")]
-  write.table(ele_sound_dets_sum,file=paste("~/R/Bobbi_Scripts/PNNNR/Files/num_events/rumble/",standard_name_disk,"_",Detector,"_Detection_Summaries.txt",sep=""),
+  write.table(ele_sound_dets_sum,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/num_events/rumble/",standard_name_disk,"_",Detector,"_Detection_Summaries.txt",sep=""),
               sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE)
 
 
 # save summaries as a new tab in sound_check
-  proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/PNNNR/Files/sites/',sites,sep=""),header=FALSE,sep="\t", check.names=FALSE))
+  proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=FALSE,sep="\t", check.names=FALSE))
   ele_det_sites <- data.frame(proj_sites)
 
   ele_det_ScoreThreshold_rand_sites_sum <- aggregate(ele_sound_dets_sum$`Sum Rumbles for Rand Days > Filtered Detector Threshold`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE)
@@ -334,14 +334,14 @@ for (h in 1:length(files)){
   colnames(ele_det_sites) <- c("Site")
   rumble_site_sound_stats <- merge(ele_det_sites,rumble_sound_stats,by = "Site",all=TRUE)# merge the sound stats and sites together
 
-  wb <- loadWorkbook(file = paste("~/R/Bobbi_Scripts/PNNNR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""))
+  wb <- loadWorkbook(file = paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""))
   if("Rumble Detector Summaries" %in% names(wb)){
     removeWorksheet(wb, "Rumble Detector Summaries")
-    saveWorkbook(wb, paste("~/R/Bobbi_Scripts/PNNNR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),overwrite=TRUE)
+    saveWorkbook(wb, paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),overwrite=TRUE)
   }
   addWorksheet(wb, sheetName = "Rumble Detector Summaries",tabColour='green')
   writeData(wb, sheet = "Rumble Detector Summaries", x = rumble_site_sound_stats)
-  saveWorkbook(wb,paste("~/R/Bobbi_Scripts/PNNNR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),returnValue=FALSE,overwrite=TRUE)
+  saveWorkbook(wb,paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),returnValue=FALSE,overwrite=TRUE)
 
 # plot to detector summaries (total detections by sound file)
   det_sum_DetectorThreshold <- aggregate(`Sum Rumbles > Detector Threshold`~Date+Site, data=ele_sound_dets_sum,sum,na.rm=TRUE)
@@ -351,7 +351,7 @@ for (h in 1:length(files)){
   det_sum_ScoreThreshold_rand$Date <- as.Date(det_sum_ScoreThreshold_rand$Date,format="%m/%d/%Y")
   det_sum_ScoreThreshold_rand <- det_sum_ScoreThreshold_rand[order(det_sum_ScoreThreshold_rand$Site,det_sum_ScoreThreshold_rand$Date),]
 
-  setwd("~/R/Bobbi_Scripts/PNNNR/Files/num_events/rumble")
+  setwd("~/R/Bobbi_Scripts/Packages/elpR/Files/num_events/rumble")
   det_sum_DetectorThreshold_plot <- ggplot(det_sum_DetectorThreshold, aes(x = Date, y =  `Sum Rumbles > Detector Threshold`, colour = Site)) +
           geom_point(show.legend = FALSE)+
           scale_y_continuous(trans='log10')+
@@ -409,7 +409,7 @@ for (h in 1:length(files)){
                             "Notes", "Analyst","Rand", "Deployment",
                             "Sound Problems","Call Criteria")]
 
-  write.table(ScoreThreshold_zero_rand,file=paste("~/R/Bobbi_Scripts/PNNNR/Files/zero_days_SSTs/rumble/",standard_name_disk,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_rand_ZeroDets.txt",sep=""),
+  write.table(ScoreThreshold_zero_rand,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/zero_days_SSTs/rumble/",standard_name_disk,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_rand_ZeroDets.txt",sep=""),
               sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
 

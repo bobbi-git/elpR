@@ -7,7 +7,8 @@ swift_files_dir <- '~/R/Bobbi_Scripts/PNNNR/Files/swift_files/'# directory where
 setwd(swift_files_dir)
 deployment_name <- "an_202312_dec" # official name of the deployment
 deployment_num <- "01" # update with current deployment number
-#disk #
+disk_ID <- "406" # name of the disk where the sound files are stored (alphanumeric)
+standard_name_disk <- paste(deployment_name,"_dep",deployment_num,"_d",disk_ID, sep="") # output file names (deployment name, number, disk)
 
 swift_files <-dir(path=swift_files_dir,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern="Config") # index swift files in SwiftFiles folder are (must have "SwiftConfig" as part of file name)
 l <- list()
@@ -31,4 +32,4 @@ for (i in 1:length(swift_files)){
 }
 swift_merge <- do.call(rbind,l)
 
-write.table(swift_merge,file=paste(swift_files_dir,paste(deployment_name,paste("dep",deployment_num,sep=""),"Swift_config_Merge.txt",sep="_"),sep="/"),sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
+write.table(swift_merge,file=paste(swift_files_dir,paste(standard_name_disk,"Swift_config_Merge.txt",sep="_"),sep="/"),sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
