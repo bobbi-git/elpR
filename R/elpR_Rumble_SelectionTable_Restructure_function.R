@@ -16,10 +16,11 @@
 # - count the total number of days without detections at 0.2 and 0.4
 # - save a selection table of sound files without detections at score 0.4 for random dates (saved in the Packages/elpR\Fileszero_days_SSTs\rumble folder)
 
-# TO DO
+## TO DO
 # check that all selections for have a unique selection ID
+# Make copy of all rand p4 files to the counted folder and add the XXX0 as suffix
 
-HH_Selection_Table_Restructure <- function (x) {
+Rumble_Selection_Table_Restructure <- function (x) {
 
 
   # # install and load necessary packages
@@ -119,15 +120,24 @@ HH_Selection_Table_Restructure <- function (x) {
                                  "Begin File", "Site", "Begin Hour", "File Start Date","Begin Date",
                                  "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes",
                                  "Analyst","Rand", "Deployment","Disk")] #reorder columns
-      elp_order$"Begin Path"<-gsub("\\\\\\\\159nas\\\\L\\\\ELP\\\\","L:ELP\\\\",elp_order$"Begin Path")
-      elp_sort<-elp_order[order(elp_order$"File Offset (s)"),]# sort dataframe by file offset
+      elp_order$"Begin Path"<-gsub("\\\\\\\\159nas\\\\L\\\\ELP\\\\","L:ELP\\\\",elp_order$"Begin Path") # add begin path
+      elp_sort<-elp_order[order(elp_order$"File Offset (s)"),]# sort dataframe by file offset # sort by file and file offset
       elp_sort$'Call Criteria'<-"20210212" # Update this with the latest version of the Call Criteria
       elp_rand_sound<-merge(elp_sort,sound_problem,by="Begin File",all.x=T)# cross-reference with sound problems if the table is empty and create dummy values
-      elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good"
-      elp_rand_sound_exclude <- elp_rand_sound[(elp_rand_sound$`Exclude (y/e)` == "Good"),]
-      write.table(elp_rand_sound_exclude,
-                      paste(processed_HH,file_size[i], sep=""),
-                      sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save each table with same name into same directory
+      elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
+      elp_rand_sound_exclude <- elp_rand_sound[(elp_rand_sound$`Exclude (y/e)` == "Good"),] # filter selection table only by good sounds and exclude bad sounds
+      ifelse(nrow(elp_rand_sound_exclude) >0, # if table doesn't have good sounds then delete it, if it does, then save the table
+          write.table(elp_rand_sound_exclude,
+                          paste(processed_HH,file_size[i], sep=""),
+                          sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE), #save each table with same name into same directory
+          file.move(file_size[i],"~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded")
+        )
+      }
+      # if(nrow(elp_rand_sound_exclude) >0){ # if table doesn't have good sounds then delete it, if it does, then save the table
+      #   write.table(elp_rand_sound_exclude,
+      #               paste(processed_HH,file_size[i], sep=""),
+      #               sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save each table with same name into same directory
+      # }
       }
 
 #### 2) MERGE ALL SELECTION TABLES BY SITE #### (for site-foldered structure)

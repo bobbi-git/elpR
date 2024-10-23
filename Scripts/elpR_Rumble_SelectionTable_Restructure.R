@@ -25,10 +25,10 @@ library(lubridate)
 
 #4) Set fields
   # Update the fields below
-  deployment_name <- "nn_202311_nov" # official name of the deployment
-  deployment_num <- "18" # update with current deployment number
-  disk_ID <- "00" # name of the disk where the sound files are stored (alphanumeric)
-  sites <- "PNNN_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
+  deployment_name <- "dz_202307_jul" # official name of the deployment
+  deployment_num <- "02" # update with current deployment number
+  disk_ID <- "407" # name of the disk where the sound files are stored (alphanumeric)
+  sites <- "DSPA_DZ_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
   sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
 
 #5) Provide Detector information
@@ -37,7 +37,7 @@ library(lubridate)
   Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by
 
 #5) Run line below to restructure the gunshot detector selection tables
-  HH_Selection_Table_Restructure(HH_selection_tables)
+  Rumble_Selection_Table_Restructure(HH_selection_tables)
 
 
 ## TO DO ##

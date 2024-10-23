@@ -5,9 +5,9 @@
 library(stringr)
 
 # update:
-setwd('L:/ELP/Detectors/Elephant/Detectors/BirdNetPlus/Detector_output/output_tempSpace') #parent folder of all files
-path<-"L:/ELP/Detectors/Elephant/Detectors/BirdNetPlus/Detector_output/output_tempSpace" # parent folder of all files
-HH_selection_tables <- 'L:/ELP/Detectors/Elephant/Detectors/BirdNetPlus/Detector_output/output_tempSpace'
+setwd('C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp') #parent folder of all files
+path<-"C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp" # parent folder of all files
+HH_selection_tables <- 'C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp'
 
 #### A) MERGE SELECTION TABLES WITHIN ONE FOLDER (NEEDS TO BE FIXED) ####
 file_names<-dir(path=HH_selection_tables,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern=".txt")
@@ -22,7 +22,7 @@ file_names<-dir(path=HH_selection_tables,all.files=TRUE,include.dirs=TRUE,recurs
     merge_df<-if(!is.null(merge_df)){merge_df[order(merge_df$"Begin File",merge_df$"File Offset (s)"),]}
     if(nrow(merge_df>0)){
       merge_df$"Selection"<- seq.int(nrow(merge_df)) #renumber the selections for Raven
-      write.table(table_df,file_names[i],sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save each table wit same name into same directory
+     # write.table(table_df,file_names[i],sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save each table wit same name into same directory
     }
   }
 
@@ -41,7 +41,7 @@ for (j in 1:length(folder)){
   #merge_df<-if(!is.null(merge_df)){merge_df[order(merge_df$"Begin File",merge_df$"File Offset (s)"),]} # order the table by Begin File and File Offset
   if(nrow(merge_df>0)){
     merge_df$"Selection"<- seq.int(nrow(merge_df)) #renumber the selections for Raven
-    write.table(merge_df,file=paste(folder[j],"_BirdNet.txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save table
+    write.table(merge_df,file=paste(folder[j],"_merged.txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save table
   }
 }
 
