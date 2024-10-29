@@ -7,10 +7,10 @@ library(stringr)
 # update:
 setwd('C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp') #parent folder of all files
 path<-"C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp" # parent folder of all files
-HH_selection_tables <- 'C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp'
+selection_tables <- 'C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp'
 
 #### A) MERGE SELECTION TABLES WITHIN ONE FOLDER (NEEDS TO BE FIXED) ####
-file_names<-dir(path=HH_selection_tables,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern=".txt")
+file_names<-dir(path=selection_tables,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern=".txt")
 #file_size<-file_names[sapply(file_names, file.size) > 117] #only read files greater than 117 bytes since those less are blank tables (this will change depending on column names, so update)
 
   for (i in 1:length(file_names)){
@@ -27,7 +27,8 @@ file_names<-dir(path=HH_selection_tables,all.files=TRUE,include.dirs=TRUE,recurs
   }
 
 #### B) MERGE ALL SELECTION TABLES THAT ARE IN SUBFOLDERS ####
-folder<-list.dirs(HH_selection_tables,recursive=F,full.names=TRUE)
+# Ensure that all columns in selection tables are in same order and number. If it breaks, it might not meet that criteria.
+folder<-list.dirs(selection_tables,recursive=F,full.names=TRUE)
 
 library(plyr)
 

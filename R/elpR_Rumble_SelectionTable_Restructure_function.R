@@ -23,6 +23,7 @@
 Rumble_Selection_Table_Restructure <- function (x) {
 
 
+
   # # install and load necessary packages
   # sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
   # if(!require(sel_table_struct)){
@@ -80,11 +81,43 @@ Rumble_Selection_Table_Restructure <- function (x) {
   if(nrow(file_small) >0){
     file_small$dep <-deployment_num
     colnames(file_small) <- c("Empty Selection Table","Deployment")
-    file_small$Site <- substring(sub("_20.*","",file_small$'Empty Selection Table'),4) #NEED TO UPDATE THIS FOR THE CLUSTER SITE NAMES
-    file_small$Date <- substr(sub(".*Date_","",file_small$'Empty Selection Table'),start=1,stop=8)
+    file_small$`Empty Selection Table` <- basename(file_small$`Empty Selection Table`)
+    #file_small$Site <- substring(sub("_20.*","",file_small$'Empty Selection Table'),4) #NEED TO UPDATE THIS FOR THE CLUSTER SITE NAMES
+    file_small$Site <- substr(str_match(file_small$'Empty Selection Table',"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_")[,1],1,
+                              nchar(str_match(file_small$'Empty Selection Table',"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_")[,1])-1)
+    #file_small$Date <- substr(sub(".*Date_","",file_small$'Empty Selection Table'),start=1,stop=8)
+    file_small$Date <-  substr(str_match(file_small$'Empty Selection Table',"\\d{8}")[,1],1,
+                               nchar(str_match(file_small$'Empty Selection Table',"\\d{8}")[,1]))
     file_small$Date <- as.POSIXct(file_small$Date,format='%Y%m%d',origin = "1970-01-01",tz="Africa/Brazzaville") # convert format of start date and time to proper data and time format
     file_small$`Deployment Name` <- deployment_name
     file_small$'Detection Score Threshold' <- Detector_ScoreThreshold
+    file_small$"Begin File" <- ""
+    file_small$Rand <- ""
+    file_small$`Sound Problems` <- ""
+    file_small$`Count` = "NA"
+    file_small$Measurable = "NA"
+    file_small$Harmonics = "NA"
+    file_small$Ambiguous = "NA"
+    file_small$`Begin Time (s)` = 20
+    file_small$`End Time (s)` = 100
+    file_small$View = "Spectrogram"
+    file_small$Channel = 1
+    file_small$`Low Freq (Hz)` = 10
+    file_small$`High Freq (Hz)` = 1000
+    file_small$Notes = paste("No Hori-Harm rumble detections on this date and site at score threshold of",Detector_ScoreThreshold,sep=" ")
+    file_small$Selection = seq.int(nrow(file_small))
+    file_small$`File Offset (s)`= 20
+    file_small$'Begin Date' <- as.Date(file_small$Date,format = '%m/%d/%Y')
+    file_small$'Begin Date'<-format(file_small$'Begin Date',"%m/%d/%Y")
+    file_small$"Event Date"<-file_small$"Begin Date"
+    file_small$`Deployment` <- deployment_num
+    file_small$Score <- Detector_ScoreThreshold
+    file_small$`Begin Path` <- ""
+    file_small$Analyst <- "NA"
+    file_small$`Call Criteria` <- "NA"
+    file_small$`Begin Hour` <- ""
+    file_small$"File Start Date" <- file_small$'Begin Date'
+
     write.table(file_small, file=paste('~/R/Bobbi_Scripts/Packages/elpR/Files/Empty_Tables/rumble/',standard_name_disk,"_Empty_Tables_",Detector,"_p",sub("\\d.","",Detector_ScoreThreshold),'.txt',sep=""),
                 sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save a .csv listing the files with no detections
   }
@@ -381,6 +414,7 @@ for (h in 1:length(files)){
 
 
 # #### Create Zero-Days Selection Table ####
+
 
   sounds_det_ScoreTHreshold_rand <- ele_sound_dets[(ele_sound_dets$`Exclude (y/e)` == "Good"),]
   sounds_det_ScoreTHreshold_rand <- sounds_det_ScoreTHreshold_rand[(sounds_det_ScoreTHreshold_rand$Rand == "rand"),]
