@@ -1,0 +1,54 @@
+# ELP Detections and Sampling Effort
+
+# This script reads in three data-types
+# - Elephant rumble detection data (requires columns 'Begin File', 'File Offset', 'Count' and 'Dep Num')
+# - Gunshot detection data (requires columns 'Begin File', 'File Offset', 'Count' and 'Dep Num')
+# - Zero days data to account for sampling effort (requires columns 'Begin File')
+# - sound check files
+
+
+# CAUTION
+# Some of these files may not have been updated after changes were made to sound file names, times, subsequent discoveries in poor sound quality, etc.
+# This script assumes all the tables are up-to-date. All changes should be updated in these files before they are loaded in .R
+# this does not yet include bad dates from the SwiftOne gain setting issue
+
+# bje37@cornell.edu
+# updated: Sept 2023
+
+## ADD site strata ()
+## Add night and day cat
+# overlay plot and individual site plot (all sites)
+# plot average per strata by unit time with rendline (one strata per panel)
+# daily summaries
+# mean monthly plot per strata
+# add lat long
+
+rm(list = ls())
+
+###### READ FROM BASE TABLES IN BASETABLES FOLDER ######
+
+library(dplyr)
+library(tidyverse)
+library(stringr)
+library(purrr)
+library(lubridate)
+library(readxl)
+
+output <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/merged_data/test" # where you want the merged data to be saved to
+sound_checks <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/sound_checks" # where all the sound check files are located
+ele_tables<-"L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/ele" # where all the elephant selection tables are located
+zero_txt <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/HH_zero_detection_days" # where the zero-day (selection tables with dummy events on dates without rumbles) tables are located
+# gunshot_tables <-
+
+project_name <- "PNNN" # name of project (e.g., "PNNN", "DzangaBai", etc.)
+deployment_num <- "01-17" # deployment(s) number (e.g., "01-12", "04")
+detector_name <- "HHv6" # # name of the detector used for these data. For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1. For other, type the name. Do not include spaces or special characters
+
+site_lat_long <- read.table("C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/sites/PNNN_Sites_latLongStrata.txt",
+                            header = T, sep ="\t", check.names=FALSE,quote = "\"")# load general table for sites
+
+rand_dates_needed <- "y" # type "y" if so, type "n" of not
+ele_bad_sound_remove <- "y" # type "y" if sounds with <23 hrs of sound should be excluded. Type "n" if not
+
+data_summaries()
+

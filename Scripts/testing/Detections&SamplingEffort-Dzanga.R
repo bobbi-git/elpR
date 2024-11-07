@@ -16,14 +16,14 @@
 # updated: Sept 2023
 
 ## ADD site strata ()
-## Add nigh and day cat
+## Add night and day cat
 # overlay plot and individual site plot (all sites)
 # plot average per strata by unit time with rendline (one strata per panel)
 # daily summaries
 # mean monthly plot per strata
 # add lat long
 
-
+rm(list = ls())
 
 ###### READ FROM BASE TABLES IN BASETABLES FOLDER ######
 
@@ -34,7 +34,7 @@ library(purrr)
 library(lubridate)
 library(readxl)
 
-setwd("L://ELP//Projects//Dzanga//2022_DSPA_PAM_project//dz_analysis//base_tables//merged_data")
+output <- setwd("L://ELP//Projects//Dzanga//2022_DSPA_PAM_project//dz_analysis//base_tables//merged_data")
 
 sound_checks <- "L://ELP//Projects//Dzanga//2022_DSPA_PAM_project//dz_analysis//base_tables//sound_checks//" # where all the sound check files are saved
 ele_tables<-"L://ELP//Projects//Dzanga//2022_DSPA_PAM_project//dz_analysis//base_tables//ele//" # where all the elephant selection tables are saved

@@ -6,22 +6,25 @@
 #### TO DO ####
 ## remove NA from sound check tab of spreadsheet ("NAs introduced by coercion")
 ## Flag start times that begin outside of expected hour (7-19) to indicate improper time stamp
-## Add more flexibility in sounds considered too long (hourly sounds ~60.01s)
-## Automatically exclude (y) BAD SOUNDS from the sample rate column
-
+## mark BAD SOUND as y in exclude column. It's in the script, but not working. Needs to be fixed.
 
 sound.check <- function (x)
-{
-
-  # # install and load necessary packages
-  # sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr",
-  #                       "gsubfn","lubridate","filesstrings","data.table","warbleR","tuneR","tidyr")
-  # if(!require(sel_table_struct)){
-  #   install.packages(sel_table_struct)}
-  # lapply(sel_table_struct, library, character.only=TRUE)
+  {
 
   #setwd(x)
   # x <- sound_path
+
+  # install and load necessary packages
+  sound_check_packages <- c("shiny","plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr",
+                            "gsubfn","lubridate","filesstrings","data.table","warbleR",
+                            "tuneR","tidyr","devtools")
+  options(warn = -1)
+  for (i in sound_check_packages){
+    if (!require(i, quietly = TRUE, character.only = TRUE)){
+      install.packages(i)
+      library(i)
+    }
+  }
 
   standard_name_disk <- paste(deployment_name,"_dep",deployment_num,"_d",disk_ID, sep="") # output file names (deployment name, number, disk)
 
@@ -45,18 +48,18 @@ sound.check <- function (x)
   colnames(check) <- c("File Path","Current File Name","File Size (Bytes)","File Duration (s)")  # name columns
 
   check$'File Size (GB)' <- round(check$`File Size (Bytes)`/1073741824,4) #  file size in GB
-  check$"File Name Length" <- nchar(check$`Current File Name`) # mark sound files that are longer or shorter than the expected file name length (25 characters, update as needed)
-  check$"File Name Length Check" <- ifelse(nchar(check$`Current File Name`)>25,"File name too long",
-                                           ifelse(nchar(check$`Original File`)<25,"File name too short","")) # check the character length of sound name
   check$Site <- sub("\\_","",str_extract(check$`Current File Name`,"[a-z]{2}\\d{2}[a-z]{1}."))
   #check$Site <- substr(str_extract(check$`Current File Name`,"[a-z]{2}\\d{2}[a-z]{1}_*"),1,nchar(str_extract(check$`Current File Name`,"[a-z]{2}\\d{2}[a-z]{1}_*"))-1) # currently does not interpret the cluster sites ("nn09c1" etc) names correctly because of extra character
+  check$"Site Name Length" <- nchar(check$Site) # mark sound files that are longer or shorter than the expected file name length (25 characters, update as needed)
+  check$"Site Name Length Check" <- ifelse(check$`Site Name Length`>5,"Site name too long",
+                                           ifelse(check$`Site Name Length`<5,"Site name too short","Site name good")) # check the character length of sound name
   #check$FolderName <- ifelse(check$Site == substr(check$'Current File Name',1,5),"","Sound file in wrong folder") # Check that the site of the sound file matches the site of the folder (NEED TO DO)
   check$"Current File Start DateTime" <- str_extract(check$'Current File Name' ,"\\d{8}.\\d{6}") #  file start date and time from file name (_YYYYMMDD_HHMMSS)
   check$"Current File Start DateTime" <- as.POSIXct(check$`Current File Start DateTime`,format='%Y%m%d_%H%M%S',origin = "1970-01-01",tz="Africa/Brazzaville") # convert format of start date and time to proper data and time format
   check$"File Begin Hour" <- hour(check$`Current File Start DateTime`) #  the begin hour
   check$"Duration Hours" <- round(check$`File Duration (s)`/3600,digits = 2) #  total time in hours
   check$"Duration Minutes" <-round(check$`File Duration (s)`/60,digits=2) # total time in minutes
-  check$"File Duration Check"<-ifelse(check$`File Duration (s)`>(fileDurationMin*60),"File longer than expected",
+  check$"File Duration Check"<-ifelse(check$`File Duration (s)`>((fileDurationMin*60)+1),"File longer than expected",
                                       ifelse(check$`File Duration (s)`<((fileDurationMin*60)*0.98),"File shorter than expected","")) # Check if file is longer or shorter than 24 hours
   check$'Calculated End DateTime' <- as.POSIXct(check$`Current File Start DateTime`+
                                                   check$`File Duration (s)`,origin="1970-01-01",tz="Africa/Brazzaville") # add file duration to start time
@@ -118,7 +121,7 @@ sound.check <- function (x)
                                         ifelse(seconds_to_period(sound_check$"Current File Start DateTime"-sound_check$"Expected File Start DateTime")<(-300),"Sound Overlap",""))
   sound_check$`File Length Check`<-ifelse(sound_check$`File Duration (s)`==0,"No Data","") # mark sound files with length 0 as "No Data"
   sound_check$Notes <- ""
-  sound_check$Deployment <- deployment_num
+  sound_check$`Deployment Number` <- deployment_num
   sound_check <- merge(sound_check,site_date,all.x=T)
   sound_check$`Exclude (y/e)`<-ifelse(sound_check$'File Duration (s)'<60,"y",
                                     ifelse(sound_check$`Total Hours in Date per Site`<22.95,"e",
@@ -128,13 +131,13 @@ sound.check <- function (x)
   View(sound_check) # look at the table
 
   # restructure table to cleaner output format
-  sound_check_output<-sound_check[,c("Site","File Path","Current File Name","File Name Length Check", "Current File Start DateTime","Calculated End DateTime","Begin Date","File Duration (s)","Duration Minutes","Duration Hours",
+  sound_check_output<-sound_check[,c("Site","File Path","Current File Name","Site Name Length Check", "Current File Start DateTime","Calculated End DateTime","Begin Date","File Duration (s)","Duration Minutes","Duration Hours",
                                      "File Duration Check","Duration (DHMS)","Total Hours in Date per Site","File Length Check","File Size (GB)","SampleRate", "Sample_Rate_Check","Year Check","Expected File Start Difference minutes",
-                                     "Sound Gap Check","Exclude (y/e)","Notes","Deployment")]
+                                     "Sound Gap Check","Exclude (y/e)","Notes","Deployment Number")]
   #View(sound_check_output) #look at the formatted output table
 
 # Create the output for the .xlsx summary workbook
-  check_name_length<-sound_check %>% group_by(Site,`File Name Length Check`) %>% tally() # check file name
+  check_name_length<-sound_check %>% group_by(Site,`Site Name Length Check`) %>% tally() # check file name
   colnames(check_name_length) <- c("Site","File Name Length Issue","Total Files with Issue")
   check_file_duration<-sound_check %>% group_by(Site,`File Duration Check`) %>% tally() # check file length
   colnames(check_file_duration) <- c("Site","File Duration Issue","Total Files with Issue")
@@ -156,8 +159,8 @@ sound.check <- function (x)
 
   sound_stats <- cbind(avg_GB,sum_GB$x,avg_duration_Hrs$x,sum_duration_Hrs$x)
   colnames(sound_stats) <- c("Site","Average Size (GB)","Sum Size (GB)","Average Duration (Hours)","Sum Duration (Hours)")
-  proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=FALSE,sep="\t", check.names=FALSE))
-  colnames(proj_sites) <- c("Site")
+  proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=TRUE,sep="\t", check.names=FALSE))
+  # colnames(proj_sites) <- c("Site")
   site_sound_stats <- merge(sound_stats,proj_sites,by = "Site",all=TRUE)# merge the sound stats and sites together
 
 
@@ -174,7 +177,7 @@ sound.check <- function (x)
   sound_check_file <- "~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/"
 
   write.xlsx(list_of_reports,file=paste(sound_check_file,"Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),asTable=TRUE,na="")
-  write.table(sound_check,file=paste(sound_check_file,"Sound_Check_",standard_name_disk,".txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE)
+  #write.table(sound_check,file=paste(sound_check_file,"Sound_Check_",standard_name_disk,".txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE)
 
   return(c(sound_stats))
 

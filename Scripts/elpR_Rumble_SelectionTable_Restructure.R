@@ -41,4 +41,4 @@ library(lubridate)
 
 
 ## TO DO ##
-
+# add detection name and version as column in table

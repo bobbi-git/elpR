@@ -27,15 +27,15 @@ library(gsubfn)
 
 
 # Set fields
-sound_path <- "F:/Deployment2-download_October_November" # choose top folder path to sound files
-deployment_name <- "dz_202307_jul" # official name of the deployment
+sound_path <- "G:/Kakum2024/Sound_Files/Kakum_2024" # choose top folder path to sound files
+deployment_name <- "kk_202405_may" # official name of the deployment
 deployment_num <- "02" # update with current deployment number
-disk_ID <- "406" # name of the disk where the sound files are stored (alphanumeric)
-sample_rate <- 32000 # sample rate in Hz
+disk_ID <- "366" # name of the disk where the sound files are stored (alphanumeric)
+sample_rate <- 8000 # sample rate in Hz
 fileDurationMin <- 60 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
 sound_file_ext <- ".wav" # the extension of the sound file (e.g., ".wav",".flac", or ".aiff")
-sites <- "DSPA_DZ_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
-extra_sounds_folder <-"F:/Deployment2_Extra_Sounds" # choose a folder to store the extra sound files to.
+sites <- "Kakum_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
+extra_sounds_folder <-"G:/Kakum2024/Sound_Files/Kakum2024_extra_sounds" # choose a folder to store the extra sound files to.
 
 
 #### 1) SOUND CHECK ####
@@ -52,7 +52,11 @@ sound.check(sound_path)
 # This script will:
 # 1) Sound files marked with y will be moved to the extra_sounds_folder defined above
 # 2) The sound_check spreadsheet will be updated with excluded sound file statistics
-# 3) All Swift Debug and Config files will be moved to \PNNNR\Files\swift_files
+# 3) All Swift Debug and Config files will be moved to \PNNNR\Files\swift_files if have_SwiftFiles is set to "y"
+
+have_SwiftFiles <- "y" # type "y" (lower-case) if you have Swift files in the sound folders. Type "n" if you do not.
+merge_swift_files <- "y" # type y if you want the swift files to be merged together into one file (this will not delete the single swift files). For this to work, all the swift files must have the same structure (columns names and order)
+
 sound.exclude(sound_path,extra_sounds_folder)
 
 

@@ -80,7 +80,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
   file_small <-as.data.frame(file_names[sapply(file_names, file.size) < 200])# lists (identifies) tables with no detections
   if(nrow(file_small) >0){
     file_small$dep <-deployment_num
-    colnames(file_small) <- c("Empty Selection Table","Deployment")
+    colnames(file_small) <- c("Empty Selection Table","Deployment Number")
     file_small$`Empty Selection Table` <- basename(file_small$`Empty Selection Table`)
     #file_small$Site <- substring(sub("_20.*","",file_small$'Empty Selection Table'),4) #NEED TO UPDATE THIS FOR THE CLUSTER SITE NAMES
     file_small$Site <- substr(str_match(file_small$'Empty Selection Table',"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_")[,1],1,
@@ -110,7 +110,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
     file_small$'Begin Date' <- as.Date(file_small$Date,format = '%m/%d/%Y')
     file_small$'Begin Date'<-format(file_small$'Begin Date',"%m/%d/%Y")
     file_small$"Event Date"<-file_small$"Begin Date"
-    file_small$`Deployment` <- deployment_num
+    file_small$`Deployment Number` <- deployment_num
     file_small$Score <- Detector_ScoreThreshold
     file_small$`Begin Path` <- ""
     file_small$Analyst <- "NA"
@@ -140,7 +140,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
       elp_new$"Ambiguous"<-NA #add "ambiguous" (formerly "Tag 3") column
       elp_new$Notes<-NA #add "Notes" column
       elp_new$Analyst<-NA #add "Analyst" column
-      elp_new$"Deployment"<-deployment_num # add a deployment number column (change for each deployment)
+      elp_new$"Deployment Number"<-deployment_num # add a deployment number column (change for each deployment)
       elp_new$Disk <- disk_ID
       elp_new$Score<-as.numeric(round(elp_new$Score,digits = 3)) #round the score to 3 decimal places
       #elp_new$Site<-sub("_.*","",elp_new$`Begin File`)# substr(elp_new$"Begin File",1,5) #add column with the Site ID, derived from the file path name
@@ -152,7 +152,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
                                  "Low Freq (Hz)", "High Freq (Hz)", "Begin Path", "File Offset (s)",
                                  "Begin File", "Site", "Begin Hour", "File Start Date","Begin Date",
                                  "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes",
-                                 "Analyst","Rand", "Deployment","Disk")] #reorder columns
+                                 "Analyst","Rand", "Deployment Number","Disk")] #reorder columns
       elp_order$"Begin Path"<-gsub("\\\\\\\\159nas\\\\L\\\\ELP\\\\","L:ELP\\\\",elp_order$"Begin Path") # add begin path
       elp_sort<-elp_order[order(elp_order$"File Offset (s)"),]# sort dataframe by file offset # sort by file and file offset
       elp_sort$'Call Criteria'<-"20210212" # Update this with the latest version of the Call Criteria
@@ -171,7 +171,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
       #               paste(processed_HH,file_size[i], sep=""),
       #               sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save each table with same name into same directory
       # }
-      }
+    # }
 
 #### 2) MERGE ALL SELECTION TABLES BY SITE #### (for site-foldered structure)
   # Note: The section below also works, so this chunk may be able to be deleted
@@ -224,7 +224,7 @@ for (q in 1:length(file_size)){
   elp_sound_table <- if(nrow(elp_merged)>0){
             elp_sound <- elp_merged[c("Selection", "View", "Channel", "Begin Time (s)", "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
                                    "Begin Path", "File Offset (s)", "Begin File", "Site", "Begin Hour", "File Start Date","Begin Date",
-                                   "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes", "Analyst","Rand", "Deployment",
+                                   "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes", "Analyst","Rand", "Deployment Number",
                                    "Sound Problems","Call Criteria","Disk")]
             elp_th<-filter(elp_sound,elp_sound$"Score">=Filter_ScoreThreshold) #filter the merged table by score threshold
             elp_th_rand<-filter(elp_th,elp_th$Rand == "rand") #make new dataframe for the random days for the filtered score
@@ -414,7 +414,7 @@ for (h in 1:length(files)){
 
 
 # #### Create Zero-Days Selection Table ####
-
+  # create dummy selection table with list of sound files from selection tables that have no detections at the filtered detector score threshold, but had detection above the original detector score.
 
   sounds_det_ScoreTHreshold_rand <- ele_sound_dets[(ele_sound_dets$`Exclude (y/e)` == "Good"),]
   sounds_det_ScoreTHreshold_rand <- sounds_det_ScoreTHreshold_rand[(sounds_det_ScoreTHreshold_rand$Rand == "rand"),]
@@ -431,13 +431,13 @@ for (h in 1:length(files)){
   ScoreThreshold_zero$Channel = 1
   ScoreThreshold_zero$`Low Freq (Hz)` = 10
   ScoreThreshold_zero$`High Freq (Hz)` = 1000
-  ScoreThreshold_zero$Notes = "No Hori-Harm rumble detections on this date and site at threshold of p4"
+  ScoreThreshold_zero$Notes = paste("No Hori-Harm rumble detections on this date and site at threshold of",Filter_ScoreThreshold,sep = " ")
   ScoreThreshold_zero$Selection = seq.int(nrow(ScoreThreshold_zero))
   ScoreThreshold_zero$`File Offset (s)`= 20
   ScoreThreshold_zero$'Begin Date' <- as.Date(ScoreThreshold_zero$Date,format = '%m/%d/%Y')
   ScoreThreshold_zero$'Begin Date'<-format(ScoreThreshold_zero$'Begin Date',"%m/%d/%Y")
   ScoreThreshold_zero$"Event Date"<-ScoreThreshold_zero$"Begin Date"
-  ScoreThreshold_zero$`Deployment` <- deployment_num
+  ScoreThreshold_zero$`Deployment Number` <- deployment_num
   ScoreThreshold_zero$Score <- "NA"
   ScoreThreshold_zero$`Begin Path` <- ""
   ScoreThreshold_zero$Analyst <- "NA"
@@ -450,11 +450,10 @@ for (h in 1:length(files)){
                             "Begin Path", "File Offset (s)", "Begin File", "Site",
                             "Begin Hour", "File Start Date","Begin Date",
                             "Score", "Count", "Measurable", "Harmonics", "Ambiguous",
-                            "Notes", "Analyst","Rand", "Deployment",
+                            "Notes", "Analyst","Rand", "Deployment Number",
                             "Sound Problems","Call Criteria")]
 
   write.table(ScoreThreshold_zero_rand,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/zero_days_SSTs/rumble/",standard_name_disk,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_rand_ZeroDets.txt",sep=""),
               sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
 }
-
 

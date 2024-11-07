@@ -28,6 +28,8 @@ file_names<-dir(path=selection_tables,all.files=TRUE,include.dirs=TRUE,recursive
 
 #### B) MERGE ALL SELECTION TABLES THAT ARE IN SUBFOLDERS ####
 # Ensure that all columns in selection tables are in same order and number. If it breaks, it might not meet that criteria.
+# need to remove spaces between rows. Some tables end up with them when merged.
+
 folder<-list.dirs(selection_tables,recursive=F,full.names=TRUE)
 
 library(plyr)

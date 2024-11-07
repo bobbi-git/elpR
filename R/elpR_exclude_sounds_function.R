@@ -14,7 +14,9 @@
 # - move the Swift config and debug .txt files to the swift_files folder
       # merge the Swift Config files into one .txt file and append that to the sound check sheet
 
-
+#### TO DO ####
+# update to accommodate new Swift Config files
+# enable option for Swift files or not. if not, don't execute the swift file script.
 
 sound.exclude <- function (x,y)
 {
@@ -29,6 +31,7 @@ setwd(x)
 
   #### SWIFT FILES ####
   #### rename Swift .txt files by appending folder name as a prefix and automatically move those files to new folder #### This doesn't work if there are no config files
+if(have_SwiftFiles == "y"){
   swift_files <-list.files(path=x,all.files=TRUE,full.names = TRUE,include.dirs=TRUE,recursive = TRUE, pattern=".txt") #index file paths
   swift_files<-data.frame(swift_files)
   colnames(swift_files) <- "Current File Path"
@@ -47,38 +50,65 @@ setwd(x)
   for (i in 1:nrow(swift_files)){
     file.rename(swift_files$`Current File Path`[i],swift_files$`New File Path`[i])
   }
-  swift_path <- swift_files[,"New File Path"] # isolate only the path info
+  swift_path <- swift_files[,"New File Path"] # get the path of each Swift file
 
   # move the swift files from the sound folder to the Swift files folder in the R package folder
   file.move(swift_path,w,overwrite =TRUE) # move Swift files to folder
   print("Swift files should have been moved. Check line above to confirm that all files were moved and none failed")
 
   ### merge the swift config files into new file ###
-  swift_files_dir <- '~/R/Bobbi_Scripts/Packages/elpR/Files/swift_files/'# directory where swift files are (must have "SwiftConfig" as part of file name)
-  setwd(swift_files_dir) # can this be removed?
-  swift_files <-dir(path=swift_files_dir,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern="Config") # index swift files in SwiftFiles folder are (must have "SwiftConfig" as part of file name)
-  l <- list()
+  if(merge_swift_files == "y"){
+      swift_files_dir <- '~/R/Bobbi_Scripts/Packages/elpR/Files/swift_files/'# directory where swift files are (must have "SwiftConfig" as part of file name)
+      setwd(swift_files_dir) # can this be removed?
+      swift_files <-dir(path=swift_files_dir,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern="Config") # index swift files in SwiftFiles folder are (must have "SwiftConfig" as part of file name)
+      l <- list()
 
-  for (i in 1:length(swift_files)){
-    swift_config <- read.table(swift_files[i],header=FALSE,sep="\t", check.names=FALSE,quote="\"") #read each file
-    for (j in 1:nrow(swift_config)){
-      swift_gain <- sub('.*: ',"",swift_config[1,1])
-      swift_sample_rate <- sub('.*: ',"",swift_config[2,1])
-      swift_site <- sub('.*: ',"",swift_config[3,1])
-      swift_max_size <- sub('.*: ',"",swift_config[4,1])
-      swift_program <- sub('.*: ',"",swift_config[5,1])
-      swift_date_start <- sub('.*: ',"",swift_config[6,1])
-      swift_date_end <- sub('.*: ',"",swift_config[7,1])
-      swift_SN <- sub('.*: ',"",swift_config[8,1])
-      swift_firmWare <- sub('.*: ',"",swift_config[9,1])
-      swift_df <- data.frame(swift_site, swift_gain,  swift_sample_rate, swift_max_size, swift_program, swift_date_start, swift_date_end, swift_SN, swift_firmWare)
-      colnames(swift_df) <- c("Site","Gain", "Sample Rate", "Max File Size", "Schedule","Start Date","Stop Date","Serial Number","Firmware Version")
-    }
-    l[[i]] <- swift_df
-  }
-  swift_merge <- do.call(rbind,l)
+      for (i in 1:length(swift_files)){
+        swift_config <- read.table(swift_files[i],header=FALSE,sep="\t", check.names=FALSE,quote="\"") #read each file
+        for (j in 1:nrow(swift_config)){
+                # for n rows in swift file, sub("\\:.*",swift_config[1,]). Do that for each one and append together. NOT DONE YET
+               swift_df <- data.frame(
+                assign(paste(sub("\\:.*","",swift_config[1,1]),"",sep=""),sub('.*: ',"",swift_config[1,1])),
+                assign(paste(sub("\\:.*","",swift_config[2,1]),"",sep=""),sub('.*: ',"",swift_config[2,1])),
+                assign(paste(sub("\\:.*","",swift_config[3,1]),"",sep=""),sub('.*: ',"",swift_config[3,1])),
+                assign(paste(sub("\\:.*","",swift_config[4,1]),"",sep=""),sub('.*: ',"",swift_config[4,1])),
+                assign(paste(sub("\\:.*","",swift_config[5,1]),"",sep=""),sub('.*: ',"",swift_config[5,1])),
+                assign(paste(sub("\\:.*","",swift_config[6,1]),"",sep=""),sub('.*: ',"",swift_config[6,1])),
+                assign(paste(sub("\\:.*","",swift_config[7,1]),"",sep=""),sub('.*: ',"",swift_config[7,1])),
+                assign(paste(sub("\\:.*","",swift_config[8,1]),"",sep=""),sub('.*: ',"",swift_config[8,1])),
+                assign(paste(sub("\\:.*","",swift_config[9,1]),"",sep=""),sub('.*: ',"",swift_config[9,1])),
+                assign(paste(sub("\\:.*","",swift_config[10,1]),"",sep=""),sub('.*: ',"",swift_config[10,1])),
+                assign(paste(sub("\\:.*","",swift_config[11,1]),"",sep=""),sub('.*: ',"",swift_config[11,1])),
+                assign(paste(sub("\\:.*","",swift_config[12,1]),"",sep=""),sub('.*: ',"",swift_config[12,1])),
+                assign(paste(sub("\\:.*","",swift_config[13,1]),"",sep=""),sub('.*: ',"",swift_config[13,1])),
+                assign(paste(sub("\\:.*","",swift_config[14,1]),"",sep=""),sub('.*: ',"",swift_config[14,1])),
+                assign(paste(sub("\\:.*","",swift_config[15,1]),"",sep=""),sub('.*: ',"",swift_config[15,1]))
+               )
+              colnames(swift_df) <- c(
+                paste(sub("\\:.*","",swift_config[1,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[2,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[3,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[4,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[5,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[6,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[7,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[8,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[9,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[10,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[11,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[12,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[13,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[14,1]),"",sep=""),
+                paste(sub("\\:.*","",swift_config[15,1]),"",sep="")
+              )
+                  #"Site","Gain", "Sample Rate", "Max File Size", "Schedule","Start Date","Stop Date","Serial Number","Firmware Version")
+        }
+        l[[i]] <- swift_df
+      }
+      swift_merge <- do.call(rbind,l)
+      #identical(names(l[[1]]), names(l[[13]]) )
 
-  write.table(swift_merge,file=paste(swift_files_dir,paste(standard_name_disk,"Swift_config_Merge.txt",sep="_"),sep="/"),sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
+      write.table(swift_merge,file=paste(swift_files_dir,paste(standard_name_disk,"Swift_config_Merge.txt",sep="_"),sep="/"),sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
 
   # append a new tab to the sound check file
   wb <- loadWorkbook(file = z)
@@ -89,6 +119,8 @@ setwd(x)
   addWorksheet(wb, sheetName = "SwiftConfig",tabColour='blue')
   writeData(wb, sheet = "SwiftConfig", x = swift_merge)
   saveWorkbook(wb,z,returnValue=FALSE,overwrite=TRUE)
+  }
+}
 
   #### Sound EXCLUDE ####
   #### move all sounds marked as 'y' in the sound_check file ####
