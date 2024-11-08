@@ -1,4 +1,4 @@
-Sites
+Site
 dz01a
 dz02a
 dz02b

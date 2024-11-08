@@ -28,6 +28,16 @@ data_summaries <- function (x) {
 
 setwd(output)
 
+  # install and load necessary packages
+  dut_sum_packages <- c("shiny","dplyr", "tidyverse","stringr","purrr","lubridate","readxl")
+    options(warn = -1)
+  for (i in dut_sum_packages){
+    if (!require(i, quietly = TRUE, character.only = TRUE)){
+      install.packages(i)
+      library(i)
+    }
+  }
+
 # file names
 proj_dep_name <-paste(project_name,"_dep",deployment_num,"_",detector_name,sep="") #default raw output table name
 
