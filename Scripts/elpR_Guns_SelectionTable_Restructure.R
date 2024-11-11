@@ -15,16 +15,18 @@ library(elpR)
 #2) Set fields
 rm(list = ls())
 # Update the fields below and run each line
-deployment_name <- "nn_202402_feb" # official name of the deployment
-deployment_num <- "19" # update with current deployment number
+deployment_name <- "dz_202311_nov" # official name of the deployment
+deployment_num <- "03" # update with current deployment number
 disk_ID <- "00" # name of the disk where the sound files are stored (alphanumeric)
-sites <- "PNNN_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
+sites <- "DSPA_Dz_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
 sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
 
 #5) Provide Detector information
-Detector <- "DTDguns8" # For the gunshot data template detector:DTDguns8
+Detector <- "DTDguns8" # For the gunshot data template detector:"DTDguns8"
 Detector_ScoreThreshold <- 0.53 # The score that the detector was run with
 Filter_ScoreThreshold <- 0.53 # The score that the final processed tables should be filtered by
+
+gun_selection_tables <- '~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/gunshot/raw'
 
 # 6) Run function below
 gunshot_Selection_Table_Restructure(gun_selection_tables)

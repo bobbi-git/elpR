@@ -231,7 +231,7 @@ if(!dir.exists(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rum
 if(!dir.exists(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/",sep=""))){
        dir.create(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p",sub("\\d.","",Detector_ScoreThreshold),"-p",sub("\\d.","",Filter_ScoreThreshold),"_raw/",sep=""))}
 
-# filter tables and move them to cooresponding folders in the final folder
+# filter tables and move them to coresponding folders in the final folder
 for (q in 1:length(file_size)){
   elp_merged <- read.table(file_size[q],header=TRUE,sep="\t",check.names=FALSE) #read in the merged selection table
   elp_sound_table <- if(nrow(elp_merged)>0){
