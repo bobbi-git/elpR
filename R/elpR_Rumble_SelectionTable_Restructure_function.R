@@ -22,7 +22,15 @@
 
 Rumble_Selection_Table_Restructure <- function (x) {
 
-
+  # install and load necessary packages
+  sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
+  options(warn = -1)
+  for (i in sel_table_struct){
+    if (!require(i, quietly = TRUE, character.only = TRUE)){
+      install.packages(i)
+      library(i)
+    }
+  }
 
   # # install and load necessary packages
   # sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
@@ -81,7 +89,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
   if(nrow(file_small) >0){
     file_small$dep <-deployment_num
     colnames(file_small) <- c("Empty Selection Table","Deployment Number")
-    file_small$`Empty Selection Table` <- basename(file_small$`Empty Selection Table`)
+    file_small$`Empty Selection Table` <- file_small$`Empty Selection Table`
     #file_small$Site <- substring(sub("_20.*","",file_small$'Empty Selection Table'),4) #NEED TO UPDATE THIS FOR THE CLUSTER SITE NAMES
     file_small$Site <- substr(str_match(file_small$'Empty Selection Table',"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_")[,1],1,
                               nchar(str_match(file_small$'Empty Selection Table',"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_")[,1])-1)
@@ -159,19 +167,26 @@ Rumble_Selection_Table_Restructure <- function (x) {
       elp_rand_sound<-merge(elp_sort,sound_problem,by="Begin File",all.x=T)# cross-reference with sound problems if the table is empty and create dummy values
       elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
       elp_rand_sound_exclude <- elp_rand_sound[(elp_rand_sound$`Exclude (y/e)` == "Good"),] # filter selection table only by good sounds and exclude bad sounds
-      ifelse(nrow(elp_rand_sound_exclude) >0, # if table doesn't have good sounds then delete it, if it does, then save the table
-          write.table(elp_rand_sound_exclude,
-                          paste(processed_HH,file_size[i], sep=""),
-                          sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE), #save each table with same name into same directory
-          file.move(file_size[i],"~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded")
-        )
+      # if(nrow(elp_rand_sound_exclude) >0){ # if table doesn't have good sounds then remove it, if it does, then save the table
+      #     write.table(elp_rand_sound_exclude,
+      #                     paste(processed_HH,file_size[i], sep=""),
+      #                     sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE), #save each table with same name into same directory
+      #   } else {file.move(file_size[i],"~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded")
+      #   }
+      if (nrow(elp_rand_sound_exclude) > 0) {
+        write.table(elp_rand_sound_exclude, paste(processed_HH, file_size[i], sep=""),
+           sep="\t", na="", col.names=TRUE, row.names=FALSE, quote=FALSE, append=FALSE) # If table has good sounds, save the table
+      } else {
+        tryCatch({
+          file.rename(file_size[i],paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded/",substr(file_size[i],1,5),"_",basename(file_size[i]),sep=""))
+         # file.move(file_size[i], "~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded") # If table doesn't have good sounds, move the file
+        }, error = function(e) {
+        cat("Failed to move file:", file_size[i],"\n")
+        cat("Error message:", e$message,"\n")
+        })
       }
-      # if(nrow(elp_rand_sound_exclude) >0){ # if table doesn't have good sounds then delete it, if it does, then save the table
-      #   write.table(elp_rand_sound_exclude,
-      #               paste(processed_HH,file_size[i], sep=""),
-      #               sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save each table with same name into same directory
-      # }
-    # }
+  }
+
 
 #### 2) MERGE ALL SELECTION TABLES BY SITE #### (for site-foldered structure)
   # Note: The section below also works, so this chunk may be able to be deleted

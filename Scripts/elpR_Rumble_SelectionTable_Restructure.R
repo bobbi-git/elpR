@@ -3,8 +3,6 @@
 # bje37
 # bobbi.estabrook@cornell.edu
 
-rm(list = ls())
-
 #1) Initialize the function in the function file
 
 #2) Install packages (if not already installed)
@@ -13,21 +11,22 @@ rm(list = ls())
 
 
 #3) Load packages
-library(plyr)
-library(dplyr)
-library(ggplot2)
-library(bigreadr)
-library(openxlsx)
-library(stringr)
-library(filesstrings)
-library(gsubfn)
-library(lubridate)
+# library(plyr)
+# library(dplyr)
+# library(ggplot2)
+# library(bigreadr)
+# library(openxlsx)
+# library(stringr)
+# library(filesstrings)
+# library(gsubfn)
+# library(lubridate)
 
 #4) Set fields
-  # Update the fields below
-  deployment_name <- "dz_202307_jul" # official name of the deployment
-  deployment_num <- "02" # update with current deployment number
-  disk_ID <- "406" # name of the disk where the sound files are stored (alphanumeric)
+rm(list = ls())
+  # Update and run the fields below
+  deployment_name <- "dz_202311_nov" # official name of the deployment
+  deployment_num <- "03" # update with current deployment number
+  disk_ID <- "00" # name of the disk where the sound files are stored (alphanumeric)
   sites <- "DSPA_DZ_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
   sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
 
