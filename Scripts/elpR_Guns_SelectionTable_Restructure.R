@@ -26,10 +26,6 @@ Detector <- "DTDguns8" # For the gunshot data template detector:DTDguns8
 Detector_ScoreThreshold <- 0.53 # The score that the detector was run with
 Filter_ScoreThreshold <- 0.53 # The score that the final processed tables should be filtered by
 
-# # 5) Run these lines of code, but do not change them
-gun_selection_tables <- '~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/gunshot' # directory with the raw detector selection tables (they can be in subfolders)
-# removed "/raw" from last line
-
 # 6) Run function below
 gunshot_Selection_Table_Restructure(gun_selection_tables)
 

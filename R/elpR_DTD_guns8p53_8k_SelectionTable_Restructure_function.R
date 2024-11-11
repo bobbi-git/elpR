@@ -15,7 +15,7 @@
 #set working directory
 #z <- selection_tables
 
-gunsshot_Selection_Table_Restructure <- function (z)
+gunshot_Selection_Table_Restructure <- function (z)
 {
 
   # install and load necessary packages

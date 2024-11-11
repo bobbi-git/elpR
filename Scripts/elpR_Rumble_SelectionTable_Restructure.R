@@ -20,8 +20,6 @@ rm(list = ls())
   Detector_ScoreThreshold <- 0.2 # The score that the detector was run with
   Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by
 
-  have_sound_check <- "y" # set this to "y" if you have a sound check report file (from the sound_check script). Set this to "n" if you do not have a sound check report file
-
 #4) Run line below to restructure the gunshot detector selection tables
   Rumble_Selection_Table_Restructure(HH_selection_tables)
 
