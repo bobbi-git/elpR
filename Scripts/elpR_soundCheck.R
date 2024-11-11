@@ -2,29 +2,8 @@
 # bje37
 # bobbi.estabrook@cornell.edu
 
-# Initialize the function in the function file
-
-# Install packages (if not already installed)
-## install.packages(c("devtools","warbleR","stringr","lubridate","data.table","tuneR","plyr","dplyr","tidyr","openxlsx","ggplot2","filesstrings","gsubfn"))
-
 # clear the environment
 rm(list = ls())
-
-# # Load lackage
-# library(devtools)
-# library(warbleR)
-# library(stringr)
-# library(lubridate)
-# library(data.table)
-# library(tuneR)
-# library(plyr)
-# library(dplyr)
-# library(tidyr)
-# library(openxlsx)
-# library(ggplot2)
-# library(filesstrings)
-# library(gsubfn)
-
 
 # Set fields
 sound_path <- "H:/Dep03_8khz_7sites" # choose top folder path to sound files
