@@ -18,13 +18,54 @@ sound.check <- function (x)
   sound_check_packages <- c("shiny","plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr",
                             "gsubfn","lubridate","filesstrings","data.table","warbleR",
                             "tuneR","tidyr","devtools")
-  options(warn = -1)
-  for (i in sound_check_packages){
-    if (!require(i, quietly = TRUE, character.only = TRUE)){
-      install.packages(i)
-      library(i)
+  # options(warn = -1)
+  # for (i in sound_check_packages){
+  #   if (!require(i, quietly = TRUE, character.only = TRUE)){
+  #     install.packages(i)
+  #     library(i)
+  #   }
+  # }
+
+  # install and load necessary packages
+  sound_check_packages <- c("shiny","plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr",
+                            "gsubfn","lubridate","filesstrings","data.table","warbleR",
+                            "tuneR","tidyr","devtools")
+  # options(warn = -1)
+  # for (i in sound_check_packages) {
+  #   if (!require(i, quietly = TRUE, character.only = TRUE)){
+  #     install.packages(i)
+  #     library(i)
+  #   }
+  # }
+
+  install_and_load_packages <- function(packages) {
+    # Check if packages are installed, install if not
+    new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
+    if(length(new_packages)) {
+      cat("Installing packages:", paste(new_packages, collapse = ", "), "\n")
+      install.packages(new_packages)
     }
+
+    # Load all packages
+    cat("Loading packages...\n")
+    for(package in packages) {
+      tryCatch({
+        library(package, character.only = TRUE)
+        cat("Loaded:", package, "\n")
+      }, error = function(e) {
+        cat("Failed to load:", package, "\n")
+        cat("Error:", conditionMessage(e), "\n")
+      })
+    }
+
+    # Print all loaded packages
+    cat("\nAll currently loaded packages:\n")
+    print(search()[grep("package:", search())])
   }
+
+  invisible(sapply(sound_check_packages, install_and_load_packages))
+
+#### Process sound files ####
 
   standard_name_disk <- paste(deployment_name,"_dep",deployment_num,"_d",disk_ID, sep="") # output file names (deployment name, number, disk)
 
