@@ -15,13 +15,18 @@
 #set working directory
 #z <- selection_tables
 
-guns8p53_Selection_Table_Restructure <- function (z)
+gunsshot_Selection_Table_Restructure <- function (z)
 {
 
-  # sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
-  # if(!require(sel_table_struct)){
-  #   install.packages(sel_table_struct)}
-  # lapply(sel_table_struct, library, character.only=TRUE)
+  # install and load necessary packages
+  sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
+  options(warn = -1)
+  for (i in sel_table_struct){
+    if (!require(i, quietly = TRUE, character.only = TRUE)){
+      install.packages(i)
+      library(i)
+    }
+  }
 
   setwd(gun_selection_tables)
 

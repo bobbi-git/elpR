@@ -178,9 +178,8 @@ Rumble_Selection_Table_Restructure <- function (x) {
            sep="\t", na="", col.names=TRUE, row.names=FALSE, quote=FALSE, append=FALSE) # If table has good sounds, save the table
       } else {
         tryCatch({
-          file.rename(file_size[i],paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded/",substr(file_size[i],1,5),"_",basename(file_size[i]),sep=""))
-         # file.move(file_size[i], "~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded") # If table doesn't have good sounds, move the file
-        }, error = function(e) {
+          file.rename(file_size[i],paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded/",substr(file_size[i],1,5),"_excludedSoundDates_",basename(file_size[i]),sep="")) # If detections are on bad ele sound day (Exclude = e or y in sound check file), move the file
+         }, error = function(e) {
         cat("Failed to move file:", file_size[i],"\n")
         cat("Error message:", e$message,"\n")
         })
@@ -202,9 +201,8 @@ Rumble_Selection_Table_Restructure <- function (x) {
 #     write.table(merge_df,file=paste(folder[j],"/",standard_name_disk,"_HHv6p2_p",sub("\\d.","",Detector_ScoreThreshold),"_8k_rand_raw.txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save tables
 #     #write.table(merge_df,file=paste(folder[j],standard_name_disk,"_HHv6p2_p",sub("\\d.","",Detector_ScoreThreshold),"_8k_rand_raw.txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE) #save tables
 #     }
-
-
 # if: "Error in order(merge_df$"Begin File", merge_df$"File Offset (s)") : argument 1 is not a vector" check file sizes in folder (they are all likely 1 kb and the folder should be deleted, then rerun this section)
+
 
   #### MERGE ALL SELECTION TABLES (this section should work for files that are and are not already in site-wise folders)####
   setwd("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/processed/")
@@ -295,7 +293,8 @@ for (h in 1:length(files)){
   names(ele_sounds2)[names(ele_sounds2) == "File Path"] <- "Begin Path"
   ele_sounds2$Date <- format(as.Date(str_extract(ele_sounds2$'Begin File' ,"\\d{8}.\\d{6}"),"%Y%m%d"),"%m/%d/%Y")
 
-  # detections
+  # detection summaries
+  # filter selection tables by rand and score
   setwd("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p2_raw")
   det_files <- list.files(path="~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/final/p2_raw",
                           pattern=standard_name_disk,
@@ -308,6 +307,7 @@ for (h in 1:length(files)){
   det_files_Filter_ScoreThreshold_dets_rand <- det_files_Filter_ScoreThreshold_dets[(det_files_Filter_ScoreThreshold_dets$Rand == "rand"),]
   # det_files_p4_rand <- det_files_p4[(det_files_p4$Rand == "rand"),]
 
+  # summarize filtered detections by file name, date, and site
   det_files_Detector_ScoreThreshold_summary <- det_files_Detector_ScoreThreshold %>% group_by(`Begin File`,Site,`Begin Date`) %>% tally() # summarize detections per site and day for lowest score threshold (Detector_ScoreThreshold from script)
   # dets_files_p2 <- det_files_p2 %>% group_by(`Begin File`,Site,`Begin Date`) %>% tally() # summarize detections per site and day for lowest score threshold (Detector_ScoreThreshold from script)
   colnames(det_files_Detector_ScoreThreshold_summary) <- c("Begin File","Site", "Date","Sum Rumbles > Detector Threshold")

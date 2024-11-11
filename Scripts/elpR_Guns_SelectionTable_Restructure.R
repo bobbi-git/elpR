@@ -9,26 +9,11 @@
 # - num_events file created by the DTD app
 
 
+#1) Load package
+library(elpR)
+
+#2) Set fields
 rm(list = ls())
-
-#1) Initialize the function in the function file
-
-#2) Install packages (if not already installed)
-# install.packages(c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate",
-# "filesstrings"))
-
-#3) Load packages
-library(plyr)
-library(dplyr)
-library(ggplot2)
-library(bigreadr)
-library(openxlsx)
-library(stringr)
-library(filesstrings)
-library(gsubfn)
-library(lubridate)
-
-#4) Set fields
 # Update the fields below and run each line
 deployment_name <- "nn_202402_feb" # official name of the deployment
 deployment_num <- "19" # update with current deployment number
@@ -46,7 +31,7 @@ gun_selection_tables <- '~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/
 # removed "/raw" from last line
 
 # 6) Run function below
-guns8p53_Selection_Table_Restructure(gun_selection_tables)
+gunshot_Selection_Table_Restructure(gun_selection_tables)
 
 # After all the files are complete:
 # move the file (see list below) to the appropriate folders on the server, and delete the files from the raw, final, and processed folders

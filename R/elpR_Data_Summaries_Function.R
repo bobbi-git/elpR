@@ -29,9 +29,9 @@ data_summaries <- function (x) {
 setwd(output)
 
   # install and load necessary packages
-  dut_sum_packages <- c("shiny","dplyr", "tidyverse","stringr","purrr","lubridate","readxl")
+  det_sum_packages <- c("shiny","dplyr", "tidyverse","stringr","purrr","lubridate","readxl")
     options(warn = -1)
-  for (i in dut_sum_packages){
+  for (i in det_sum_packages){
     if (!require(i, quietly = TRUE, character.only = TRUE)){
       install.packages(i)
       library(i)
