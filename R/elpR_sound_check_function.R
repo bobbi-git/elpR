@@ -26,17 +26,6 @@ sound.check <- function (x)
   #   }
   # }
 
-  # install and load necessary packages
-  sound_check_packages <- c("shiny","plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr",
-                            "gsubfn","lubridate","filesstrings","data.table","warbleR",
-                            "tuneR","tidyr","devtools")
-  # options(warn = -1)
-  # for (i in sound_check_packages) {
-  #   if (!require(i, quietly = TRUE, character.only = TRUE)){
-  #     install.packages(i)
-  #     library(i)
-  #   }
-  # }
 
   install_and_load_packages <- function(packages) {
     # Check if packages are installed, install if not
@@ -45,7 +34,6 @@ sound.check <- function (x)
       cat("Installing packages:", paste(new_packages, collapse = ", "), "\n")
       install.packages(new_packages)
     }
-
     # Load all packages
     cat("Loading packages...\n")
     for(package in packages) {
@@ -57,7 +45,6 @@ sound.check <- function (x)
         cat("Error:", conditionMessage(e), "\n")
       })
     }
-
     # Print all loaded packages
     cat("\nAll currently loaded packages:\n")
     print(search()[grep("package:", search())])
