@@ -17,7 +17,7 @@ rm(list = ls())
 # Update the fields below and run each line
 deployment_name <- "dz_202311_nov" # official name of the deployment
 deployment_num <- "03" # update with current deployment number
-disk_ID <- "00" # name of the disk where the sound files are stored (alphanumeric)
+disk_ID <- "201" # name of the disk where the sound files are stored (alphanumeric)
 sites <- "DSPA_Dz_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
 sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
 

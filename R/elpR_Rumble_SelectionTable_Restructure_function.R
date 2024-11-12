@@ -78,6 +78,8 @@ Rumble_Selection_Table_Restructure <- function (x) {
                                       sound_check$"Deployment Notes",sound_check$"Sound Problems", sound_check$`Exclude (y/e)`,sep = "; ") # concatenate the sound problems into one column
   names(sound_check)[names(sound_check) == 'Current File Name'] <- 'Begin File'
   sound_problem<-sound_check[c("Begin File", "Sound Problems","Exclude (y/e)")]
+  sound_problem$`Exclude (y/e)`[is.na(sound_problem$`Exclude (y/e)`)|sound_problem$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
+
   # the cross reference will occur in the next step (4)
 
   # Identify empty selection tab
@@ -165,7 +167,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
       elp_sort<-elp_order[order(elp_order$"File Offset (s)"),]# sort dataframe by file offset # sort by file and file offset
       elp_sort$'Call Criteria'<-"20210212" # Update this with the latest version of the Call Criteria
       elp_rand_sound<-merge(elp_sort,sound_problem,by="Begin File",all.x=T)# cross-reference with sound problems if the table is empty and create dummy values
-      elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
+      # elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
       elp_rand_sound_exclude <- elp_rand_sound[(elp_rand_sound$`Exclude (y/e)` == "Good"),] # filter selection table only by good sounds and exclude bad sounds
       # if(nrow(elp_rand_sound_exclude) >0){ # if table doesn't have good sounds then remove it, if it does, then save the table
       #     write.table(elp_rand_sound_exclude,
@@ -176,14 +178,14 @@ Rumble_Selection_Table_Restructure <- function (x) {
       if (nrow(elp_rand_sound_exclude) > 0) {
         write.table(elp_rand_sound_exclude, paste(processed_HH, file_size[i], sep=""),
            sep="\t", na="", col.names=TRUE, row.names=FALSE, quote=FALSE, append=FALSE) # If table has good sounds, save the table
-      } else {
-        tryCatch({
-          file.rename(file_size[i],paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded/",substr(file_size[i],1,5),"_excludedSoundDates_",basename(file_size[i]),sep="")) # If detections are on bad ele sound day (Exclude = e or y in sound check file), move the file
-         }, error = function(e) {
-        cat("Failed to move file:", file_size[i],"\n")
-        cat("Error message:", e$message,"\n")
-        })
-      }
+      } # else {
+      #   tryCatch({
+      #     file.rename(file_size[i],paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded/",substr(file_size[i],1,5),"_excludedSoundDates_",basename(file_size[i]),sep="")) # If detections are on bad ele sound day (Exclude = e or y in sound check file), move the file
+      #    }, error = function(e) {
+      #   cat("Failed to move file:", file_size[i],"\n")
+      #   cat("Error message:", e$message,"\n")
+      #   })
+      # }
   }
 
 
@@ -336,17 +338,6 @@ for (h in 1:length(files)){
       ele_sound_dets$`Sum Rumbles for Rand Days > Filtered Detector Threshold`[f][is.na(ele_sound_dets$`Sum Rumbles for Rand Days > Filtered Detector Threshold`[f])] <-0
     }
   }
-  # for(f in 1:nrow(ele_sound_dets)) {
-  #   if(ele_sound_dets$`Exclude (y/e)`[f] == "Good") {
-  #       ele_sound_dets$`Number of p2 Rumble Detections`[f][is.na(ele_sound_dets$`Number of p2 Rumble Detections`[f])] <-0
-  #     }
-  #   if(ele_sound_dets$`Exclude (y/e)`[f] == "Good") {
-  #     ele_sound_dets$`Number of p4 Rumble Detections`[f][is.na(ele_sound_dets$`Number of p4 Rumble Detections`[f])] <-0
-  #   }
-  #   if(ele_sound_dets$`Exclude (y/e)`[f] == "Good" && ele_sound_dets$Rand[f] == "rand" ) {
-  #     ele_sound_dets$`Number of p4 Rand Rumble Detections`[f][is.na(ele_sound_dets$`Number of p4 Rand Rumble Detections`[f])] <-0
-  #   }
-  # }
 
   # Summarize by site and dates, with total duration and # detections p2 and p4 rand
   ele_sound_dates <- aggregate(`Duration Minutes`~Site+Date,data=ele_sound_dets,FUN=sum)
@@ -470,5 +461,16 @@ for (h in 1:length(files)){
 
   write.table(ScoreThreshold_zero_rand,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/zero_days_SSTs/rumble/",standard_name_disk,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_rand_ZeroDets.txt",sep=""),
               sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
+
+#### delete all folders in the Processed folder ####
+  delete_all_folders <- function(path) {
+    # List all directories in the given path
+    dirs <- list.dirs(processed_HH, full.names = TRUE, recursive = FALSE)
+    # Remove each directory
+    sapply(dirs, unlink, recursive = TRUE)
+    cat("Deleted", length(dirs), "folders from", path, "\n")
+  }
+  delete_all_folders(processed_HH)
+
 }
 
