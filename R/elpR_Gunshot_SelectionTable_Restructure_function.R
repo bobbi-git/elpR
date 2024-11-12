@@ -308,6 +308,8 @@ gunshot_Selection_Table_Restructure <- function (z){
     scale_y_continuous(trans='log10')+
     facet_wrap( ~ Site)
   ggsave(plot = det_sum_plot,paste(filtered_table_name,"_det_sum_plot.png",sep=""),width =10, height =10 )
+  write.table(gun_sound_site_dets,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/zero_days_SSTs/gunshot/",filtered_table_name,"_summary.txt",sep=""),
+              sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
   # print(det_sum_p2_plot)
 
 #### Summarize number of detections per site/day ####
