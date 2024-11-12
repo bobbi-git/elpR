@@ -21,14 +21,14 @@ disk_ID <- "201" # name of the disk where the sound files are stored (alphanumer
 sites <- "DSPA_Dz_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
 sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
 
-#5) Provide Detector information
+#3) Provide Detector information
 Detector <- "DTDguns8" # For the gunshot data template detector:"DTDguns8"
 Detector_ScoreThreshold <- 0.53 # The score that the detector was run with
 Filter_ScoreThreshold <- 0.53 # The score that the final processed tables should be filtered by
 
 gun_selection_tables <- '~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/gunshot/raw'
 
-# 6) Run function below
+# 4) Run function below
 gunshot_Selection_Table_Restructure(gun_selection_tables)
 
 # After all the files are complete:
@@ -36,5 +36,4 @@ gunshot_Selection_Table_Restructure(gun_selection_tables)
 # - Move files from:
 #   - List of empty selection tables: R\Bobbi_Scripts\PNNNR\Files\Empty_HH_Tables\gunshot
 #   - Final selection tables: R\Bobbi_Scripts\PNNNR\Files\HH_Tables\gunshot\final
-#   - intermediate selection tables: R\Bobbi_Scripts\PNNNR\Files\HH_Tables\gunshot\processed (delete?)
 #   - Zero detection selection tables: R\Bobbi_Scripts\PNNNR\Files\zero_days_SSTs\gunshot

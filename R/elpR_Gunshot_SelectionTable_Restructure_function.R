@@ -32,7 +32,7 @@ gunshot_Selection_Table_Restructure <- function (z){
 #### set default names ####
   standard_name_disk <- paste(deployment_name,"_dep",deployment_num,"_d",disk_ID, sep="") # output file names (deployment name, number, disk)
   raw_table_name <-paste(deployment_name,"_dep",deployment_num,"_",Detector,"_p",sub("\\d.","",Detector_ScoreThreshold),"_",sample_rate,"_brut",sep="") #default raw output table name
-  filtered_table_name <-  paste(deployment_name,"_dep",deployment_num,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_",sample_rate,"_brut",sep="") # default filtered table name
+  filtered_table_name <-  paste(standard_name_disk,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_",sample_rate,"_brut",sep="") # default filtered table name
 
 #### folders ####
   processed_gun <- "~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/gunshot/processed/"
