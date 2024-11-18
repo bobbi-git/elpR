@@ -323,10 +323,8 @@ gunshot_Selection_Table_Restructure <- function (z){
   delete_all_folders <- function(path) {
     # List all directories in the given path
     dirs <- list.dirs(processed_gun, full.names = TRUE, recursive = FALSE)
-
     # Remove each directory
     sapply(dirs, unlink, recursive = TRUE)
-
     cat("Deleted", length(dirs), "folders from", path, "\n")
   }
     delete_all_folders(processed_gun)
