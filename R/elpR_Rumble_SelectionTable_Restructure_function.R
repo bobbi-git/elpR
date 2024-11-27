@@ -19,6 +19,7 @@
 ## TO DO
 # check that all selections for have a unique selection ID
 # Make copy of all rand p4 files to the counted folder and add the XXX0 as suffix
+# exclude dates outside of deployment period from selection table. (need to add deployment start and end to sites file (optional))
 
 Rumble_Selection_Table_Restructure <- function (x) {
   # x <- HH_selection_tables # doesn't work

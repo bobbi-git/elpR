@@ -1,10 +1,10 @@
 # ELP Detections and Sampling Effort
 
-# This script reads in three data-types
-# - Elephant rumble detection data (requires columns 'Begin File', 'File Offset', 'Count' and 'Dep Num')
-# - Gunshot detection data (requires columns 'Begin File', 'File Offset', 'Count' and 'Dep Num')
+# This script reads in these data
+# - Elephant rumble detection data (requires columns "Site", "Begin File","File Offset (s)","Rumble Count","Deployment Number","Sound Problems", "Notes")
 # - Zero days data to account for sampling effort (requires columns 'Begin File')
 # - sound check files
+# - site information (Name, optional: Strata, Lat/Long, habitat)
 
 
 # CAUTION
@@ -15,24 +15,23 @@
 # bje37@cornell.edu
 # updated: Sept 2023
 
-## ADD site strata ()
-## Add night and day cat
+# TO DO
 # overlay plot and individual site plot (all sites)
-# plot average per strata by unit time with rendline (one strata per panel)
-# daily summaries
+# plot average per strata by unit time with redline (one strata per panel)
 # mean monthly plot per strata
-# add lat long
+# leave gap in plot when no data, rather than connect line
+# need to plot rumbles given sampling effort
 
 rm(list = ls())
 
 ###### READ FROM BASE TABLES IN BASETABLES FOLDER ######
-
-library(dplyr)
-library(tidyverse)
-library(stringr)
-library(purrr)
-library(lubridate)
-library(readxl)
+#
+# library(dplyr)
+# library(tidyverse)
+# library(stringr)
+# library(purrr)
+# library(lubridate)
+# library(readxl)
 
 output <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/merged_data/test" # where you want the merged data to be saved to
 sound_checks <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/sound_checks" # where all the sound check files are located
@@ -44,11 +43,14 @@ project_name <- "PNNN" # name of project (e.g., "PNNN", "DzangaBai", etc.)
 deployment_num <- "01-17" # deployment(s) number (e.g., "01-12", "04")
 detector_name <- "HHv6" # # name of the detector used for these data. For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1. For other, type the name. Do not include spaces or special characters
 
+fileDurationMin <- 1440 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
+
 site_lat_long <- read.table("C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/sites/PNNN_Sites_latLongStrata.txt",
                             header = T, sep ="\t", check.names=FALSE,quote = "\"")# load general table for sites
 
 rand_dates_needed <- "y" # type "y" if so, type "n" of not
 ele_bad_sound_remove <- "y" # type "y" if sounds with <23 hrs of sound should be excluded. Type "n" if not
+use_only_sites_provided <- "y" # choose "y" if you only want to include the sites that were listed in the site_lat_long file. This enables exclusion of other sites that may be in the selection tables.
 
 data_summaries()
 

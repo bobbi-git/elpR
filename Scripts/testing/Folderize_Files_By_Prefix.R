@@ -9,11 +9,11 @@ rm(list = ls())
 library(filesstrings)
 library(stringr)
 
-setwd('L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_sounds/dz_202307_jul_dep02') # parent folder containing all site folders
-path = "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_sounds/dz_202307_jul_dep02" # path to file
+setwd('//ag-clo-159NAS105.ad.cornell.edu/L/ELP/Detectors/Elephant/Datasets/Testing/Sounds/Nouabale-Ndoki_Grid-Forest-Additional2024/sounds') # parent folder containing all site folders
+path = "//ag-clo-159NAS105.ad.cornell.edu/L/ELP/Detectors/Elephant/Datasets/Testing/Sounds/Nouabale-Ndoki_Grid-Forest-Additional2024/sounds" # path to file
 
 snapshot <- fileSnapshot(path, recursive= TRUE) # creates snapshot of info before moving files
-snapshot$info
+snapshot_info<- snapshot$info
 
 #### Set Paths in dataframe from file names ####
 # current file paths
@@ -52,9 +52,8 @@ file.move(current_path$`Current Path`,current_path$`New Path`,overwrite=FALSE)
 
 # _____________________________________________________________________________________#
 
-##### SKETCH SPACE ######
+##### TESTING SPACE ######
 
-# the above method requires the use to calculate and input from the used when creating a new path
 # It could be nicer to automate with with reference to folder names, rather than a substr and paste command
 # testing that option below...
 
