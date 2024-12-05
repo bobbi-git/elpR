@@ -596,10 +596,10 @@ write.table(rumble_weekly_means_site,paste(output,"/",proj_dep_name,
             quote=FALSE, append=FALSE)
 
 # identify gaps in data so they are not plotted
-week_range <- seq(min(rumble_weekly_means_site$WeekDate), max(rumble_weekly_means_site$WeekDate), by="week")
+week_range <- seq(min(rumble_weekly_means_site$WeekDate), max(rumble_weekly_means_site$WeekDate), by="7 days")
 # Create a data frame with all combinations of dates and strata
 complete_weeks <- expand.grid(
-  Week = date_range,
+  Week = week_range,
   Site = unique(rumble_weekly_means_site$Site))
 # Join this with your original data
 rumble_weekly_means_site_complete <- left_join(complete_weeks, rumble_weekly_means_site)
