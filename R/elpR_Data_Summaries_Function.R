@@ -368,8 +368,8 @@ ele_hrly_nightday_plot <- ggplot(ele_hrly, aes(x = DayNight, y = `Sum Rumbles`))
                               geom_boxplot() +
                               theme_bw()
 print(ele_hrly_nightday_plot)
-ggsave(output,"/",proj_dep_name,"_ele_hrly_nightday_plot.png", ele_hrly_nightday_plot, width = 10, height = 6, dpi = 300)
-ggsave(output,"/",proj_dep_name,"_ele_hrly_nightday_plot.eps", ele_hrly_nightday_plot, width = 10, height = 6, device = "eps")
+ggsave(paste(output,"/",proj_dep_name,"_ele_hrly_nightday_plot.png",sep=""), ele_hrly_nightday_plot, width = 10, height = 6, dpi = 300)
+ggsave(paste(output,"/",proj_dep_name,"_ele_hrly_nightday_plot.eps", sep=""), ele_hrly_nightday_plot, width = 10, height = 6, device = "eps")
 
 # rumbles per hour by site
 ele_hr_site_plot<- ggplot(ele_hrly, aes(x = Hour, y = `Sum Rumbles`)) +
@@ -378,26 +378,30 @@ ele_hr_site_plot<- ggplot(ele_hrly, aes(x = Hour, y = `Sum Rumbles`)) +
                   theme_bw()+
                   facet_wrap(~Site)
 print(ele_hr_site_plot)
-ggsave(output,"/",proj_dep_name,"_ele_hr_site_plot.png", ele_hr_site_plot, width = 10, height = 6, dpi = 300)
-ggsave(output,"/",proj_dep_name,"_ele_hr_site_plot.eps", ele_hr_site_plot, width = 10, height = 6, device = "eps")
+ggsave(paste(output,"/",proj_dep_name,"_ele_hr_site_plot.png",sep=""), ele_hr_site_plot, width = 10, height = 6, dpi = 300)
+ggsave(paste(output,"/",proj_dep_name,"_ele_hr_site_plot.eps",sep=""), ele_hr_site_plot, width = 10, height = 6, device = "eps")
 
-# rumbles per hour by site
+# rumbles per hour by site (improve axis)
 ele_hr_plot<- ggplot(ele_hrly, aes(x = Hour, y = `Sum Rumbles`)) +
                   stat_summary(fun = mean, geom = "bar") +
                   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
-                  theme_bw()
+                  theme_bw()+
+                  labs(title = "Total Rumbles Per Hour",
+                       y = "Total Rumbles (+/- SE)",
+                       x = "Hour")
 print(ele_hr_plot)
-ggsave(output,"/",proj_dep_name,"_ele_hr_plot.png", ele_hr_plot, width = 10, height = 6, dpi = 300)
-ggsave(output,"/",proj_dep_name,"_ele_hr_plot.eps", ele_hr_plot, width = 10, height = 6, device = "eps")
+ggsave(paste(output,"/",proj_dep_name,"_ele_hr_plot.png",sep=""), ele_hr_plot, width = 10, height = 6, dpi = 300)
+ggsave(paste(output,"/",proj_dep_name,"_ele_hr_plot.eps",sep=""), ele_hr_plot, width = 10, height = 6, device = "eps")
 
 #### DAILY SUMMARIES ####
 # summarize daily rumbles from hourly table
+
 daily_site_summary <- ele_hrly %>%
   group_by(Date, Site,`WeekDate`,across(all_of(site_info_names))) %>%
   summarise(
-    total_rumbles = sum(`Sum Rumbles`, na.rm = TRUE),
+    total_rumbles = sum(`Sum Rumbles`, na.rm = FALSE),
     n_hours = n(),
-    night_total = sum(`Sum Rumbles`[DayNight == "Night"], na.rm = TRUE),
+    night_total = sum(`Sum Rumbles`[DayNight == "Night"], na.rm = FALSE),
     prop_night = night_total/total_rumbles,
     prop_day = (total_rumbles-night_total)/total_rumbles
   ) %>%
@@ -436,25 +440,57 @@ write.table(daily_site_summary,
             paste(output,"/",proj_dep_name,"_Rumbles_perDay.txt",sep=""),
             sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
 
+
+# Add all dates to the daily summary dataframe and fill them with NA so they have gaps in time in the plot
+# create a complete sequence of dates
+date_range <- seq(min(daily_site_summary$Date), max(daily_site_summary$Date), by="day")
+# Create a data frame with all combinations of dates and strata
+complete_dates <- expand.grid(
+  Date = date_range,
+  Site = unique(daily_site_summary$Site))
+# Join this with your original data
+daily_site_summary_complete <- left_join(complete_dates, daily_site_summary)
+
 ## Plot daily data
 # Time series of total rumbles per site
-rumbles_daily_site_plot <- ggplot(daily_site_summary, aes(x = Date, y = total_rumbles)) +
-  geom_line() +
+rumbles_daily_site_plot <- ggplot(daily_site_summary_complete, aes(x = Date, y = total_rumbles)) +
+  geom_line(na.rm=TRUE) +
   theme_bw() +
   facet_wrap(~Site) +
+  scale_x_date(date_breaks = "6 month", date_labels = "%b-%Y")+
+  theme(axis.text.x=element_text(angle=60, hjust=1),plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_line(colour="white", size=0.5))+
   labs(title = "Total Rumbles Per Day by Site",
        y = "Total Rumbles",
        x = "Date")
 print(rumbles_daily_site_plot)
-ggsave(output,"/",proj_dep_name,"_ele_daily_site_plot.png", rumbles_daily_site_plot, width = 10, height = 6, dpi = 300)
-ggsave(output,"/",proj_dep_name,"_ele_daily_site_plot.eps", rumbles_daily_site_plot, width = 10, height = 6, device = "eps")
+ggsave(paste(output,"/",proj_dep_name,"_ele_daily_site_plot.png",sep=""), rumbles_daily_site_plot, width = 10, height = 6, dpi = 300)
+ggsave(paste(output,"/",proj_dep_name,"_ele_daily_site_plot.eps",sep=""), rumbles_daily_site_plot, width = 10, height = 6, device = "eps")
 
-# plot rumlbes per day per strata (if strata is present)
+
+# plot rumbles per day per strata (if strata is present)
 if("Strata" %in% names(daily_site_summary)){
-  rumbles_daily_strata_plot <- ggplot(daily_site_summary, aes(x = Date, y = total_rumbles)) +
-    geom_line() +
+  daily_strata_summary <- ele_hrly %>%
+    group_by(Date,`WeekDate`,Strata) %>%
+    summarise(
+      total_rumbles = sum(`Sum Rumbles`, na.rm = FALSE),
+      n_hours = n(),
+      night_total = sum(`Sum Rumbles`[DayNight == "Night"], na.rm = FALSE),
+      prop_night = night_total/total_rumbles,
+      prop_day = (total_rumbles-night_total)/total_rumbles
+    ) %>%
+    ungroup()
+  print(paste("Total rumbles per day for all dates:",sum(daily_strata_summary$total_rumbles, na.rm=TRUE),sep=" ")) #36656
+  complete_dates2 <- expand.grid(
+    Date = date_range,
+    Strata = unique(daily_strata_summary$Strata))
+  # Join this with your original data
+  daily_strata_summary_complete <- left_join(complete_dates2, daily_strata_summary)
+  rumbles_daily_strata_plot <- ggplot(daily_strata_summary_complete, aes(x = Date, y = total_rumbles, group = Strata)) +
+    geom_line(na.rm=TRUE) +
     theme_bw() +
     facet_wrap(~Strata) +
+    scale_y_continuous(limits = c(0, NA), expand = c(0, 0)) +
     scale_x_date(date_breaks = "4 month", date_labels = "%b-%Y")+
     theme(axis.text.x=element_text(angle=60, hjust=1),plot.title = element_text(hjust = 0.5),
           panel.grid.major = element_line(colour="white", size=0.5))+
@@ -462,41 +498,65 @@ if("Strata" %in% names(daily_site_summary)){
          y = "Total Rumbles",
          x = "Date")
   print(rumbles_daily_strata_plot)
-  ggsave(output,"/",proj_dep_name,"_ele_daily_strata_plot.png", rumbles_daily_strata_plot, width = 10, height = 6, dpi = 300)
-  ggsave(output,"/",proj_dep_name,"_ele_daily_strata_plot.eps", rumbles_daily_strata_plot, width = 10, height = 6, device = "eps")
+  ggsave(paste(output,"/",proj_dep_name,"_ele_daily_strata_plot.png",sep=""), rumbles_daily_strata_plot, width = 10, height = 6, dpi = 300)
+  ggsave(paste(output,"/",proj_dep_name,"_ele_daily_strata_plot.eps",sep=""), rumbles_daily_strata_plot, width = 10, height = 6, device = "eps")
+  # save table
+  ele_daily_strata_table <-  daily_site_summary %>%
+    group_by(Strata) %>%
+    summarize(
+      "Total Rumbles" = sum(total_rumbles,na.rm = TRUE),
+      "Sum days sampled" = n(),
+      "Average rumbles per day" = mean(total_rumbles, na.rm=TRUE),
+      "Maximum rumbles per day" = max(total_rumbles, na.rm=TRUE),
+      "Total night rumbles" = sum(night_total, na.rm=TRUE),
+      "Average night time rumbles" = mean(night_total,na.rm=TRUE),
+      "Maximum night rumbles" = max(night_total,na.rm=TRUE),
+      "Proportion night time rumbles" = round(`Total night rumbles`/`Total Rumbles`,digits = 3)) %>%
+    ungroup()
+  View(ele_daily_strata_table)
+  write.table(ele_daily_strata_table,
+              paste(output,"/",proj_dep_name,"_Rumbles_perDay_perStrata.txt",sep=""),
+              sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+
 }
+
 
 # plot rumbles per day per vegetation class (if vegetation class is present)
 if("Vegetation Class" %in% names(daily_site_summary)){
-  rumbles_daily_vegetation_plot <- ggplot(daily_site_summary, aes(x = Date, y = total_rumbles)) +
-    geom_line() +
+  daily_veg_summary <- ele_hrly %>%
+    group_by(Date,`WeekDate`,`Vegetation Class`) %>%
+    summarise(
+      total_rumbles = sum(`Sum Rumbles`, na.rm = FALSE),
+      n_hours = n(),
+      night_total = sum(`Sum Rumbles`[DayNight == "Night"], na.rm = FALSE),
+      prop_night = night_total/total_rumbles,
+      prop_day = (total_rumbles-night_total)/total_rumbles
+    ) %>%
+    ungroup()
+  print(paste("Total rumbles per day for all dates:",sum(daily_veg_summary$total_rumbles, na.rm=TRUE),sep=" ")) #36656
+  complete_dates3 <- expand.grid(
+    Date = date_range,
+    `Vegetation Class` = unique(daily_veg_summary$`Vegetation Class`)) %>%
+    arrange(`Vegetation Class`, Date)
+  # Join this with your original data
+  daily_veg_summary_complete <- left_join(complete_dates3, daily_veg_summary)
+  #print(paste("Total rumbles per day for all dates:",sum(daily_veg_summary_complete$total_rumbles, na.rm=TRUE),sep=" ")) #36656
+  rumbles_daily_veg_plot <- ggplot(daily_veg_summary_complete, aes(x = Date, y = total_rumbles, group = "Vegetation Class")) +
+    geom_line(na.rm=TRUE) +
     theme_bw() +
     facet_wrap(~`Vegetation Class`) +
+    scale_y_continuous(limits = c(0, NA), expand = c(0, 0)) +
+    scale_x_date(date_breaks = "4 month", date_labels = "%b-%Y")+
+    theme(axis.text.x=element_text(angle=60, hjust=1),plot.title = element_text(hjust = 0.5),
+          panel.grid.major = element_line(colour="white", size=0.5))+
     labs(title = "Total Rumbles Per Day by Vegetation Class",
          y = "Total Rumbles",
          x = "Date")
-  print(rumbles_daily_vegetation_plot)
-  ggsave(output,"/",proj_dep_name,"_ele_daily_vegetation_plot.png", rumbles_daily_vegetation_plot, width = 10, height = 6, dpi = 300)
-  ggsave(output,"/",proj_dep_name,"_ele_daily_vegetation_plot.eps", rumbles_daily_vegetation_plot, width = 10, height = 6, device = "eps")
+  print(rumbles_daily_veg_plot)
+  ggsave(paste(output,"/",proj_dep_name,"_ele_daily_vegetation_plot.png",sep=""), rumbles_daily_veg_plot, width = 10, height = 6, dpi = 300)
+  ggsave(paste(output,"/",proj_dep_name,"_ele_daily_vegetation_plot.eps",sep=""), rumbles_daily_veg_plot, width = 10, height = 6, device = "eps")
 }
 
-# save table of daily rumbles per strata
-ele_daily_strata_table <-  daily_site_summary %>%
-  group_by(Strata) %>%
-  summarize(
-    "Total Rumbles" = sum(total_rumbles,na.rm = TRUE),
-    "Sum days sampled" = n(),
-    "Average rumbles per day" = mean(total_rumbles, na.rm=TRUE),
-    "Maximum rumbles per day" = max(total_rumbles, na.rm=TRUE),
-    "Total night rumbles" = sum(night_total, na.rm=TRUE),
-    "Average night time rumbles" = mean(night_total,na.rm=TRUE),
-    "Maximum night rumbles" = max(night_total,na.rm=TRUE),
-    "Proportion night time rumbles" = round(`Total night rumbles`/`Total Rumbles`,digits = 3)) %>%
-  ungroup()
-View(ele_daily_strata_table)
-write.table(ele_daily_strata_table,
-            paste(output,"/",proj_dep_name,"_Rumbles_perDay_perStrata.txt",sep=""),
-            sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
 
 
 #### WEEKLY SUMMARIES ####
@@ -517,49 +577,127 @@ rumble_weekly_means_site <- daily_site_summary %>%
     else sum(`total_rumbles`, na.rm=TRUE),
     sumRumblesNight = if(all(is.na(`night_total`))) NA_real_
     else sum(`night_total`, na.rm=TRUE),
-    SumRumblesSampleEffort = round(sumRumbles/n,digit=3),
-    SumNightRumblesSampleEffort = round(sumRumblesNight/n,digit=3)
+    meanRumblesNight = if(all(is.na(`night_total`))) NA_real_
+    else mean(`night_total`, na.rm=TRUE),
+    sdRumblesNight = if(all(is.na(`night_total`))) NA_real_
+    else sd(`night_total`, na.rm=TRUE),
+    seRumblesNight = sdRumblesNight/sqrt(n),
+    PropNightRumbles = round(sumRumblesNight/sumRumbles, digit = 3),
+    SumRumblesPerDaysSampled = round(sumRumbles/n,digit=3),
+    SumNightRumblesPerDaysSampled = round(sumRumblesNight/n,digit=3)
   )
 #sum(rumble_weekly_means_site$sumRumbles, na.rm=T) #36236
-rumble_weekly_means_site$`Proportion Night Rumbles` <- round(rumble_weekly_means_site$sumRumblesNight/rumble_weekly_means_site$sumRumbles,digits=4)
-rumble_weekly_means_site$`Proportion Night Rumbles`[is.nan(rumble_weekly_means_site$`Proportion Night Rumbles`)] <- NA # remove NaN from proportion calc.
-#stem(rumble_weekly_means_site$`Proportion Night Rumbles`) # look at the distribution of night rumble proportions
-# stem(rumble_weekly_means_site$n) # looks like some weeks were sampled more than 3 times. *** Should check on this ***
+rumble_weekly_means_site$PropNightRumbles[is.nan(rumble_weekly_means_site$PropNightRumbles)] <- NA # remove NaN from proportion calc.
+#stem(rumble_weekly_means_site$PropNightRumbles) # look at the distribution of night rumble proportions
 
 write.table(rumble_weekly_means_site,paste(output,"/",proj_dep_name,
                                             "_Rumbles_Site_Weekly_Summaries.txt",sep=""),
             sep='\t',na="",col.names=TRUE,row.names=FALSE,
             quote=FALSE, append=FALSE)
 
+# identify gaps in data so they are not plotted
+week_range <- seq(min(rumble_weekly_means_site$WeekDate), max(rumble_weekly_means_site$WeekDate), by="week")
+# Create a data frame with all combinations of dates and strata
+complete_weeks <- expand.grid(
+  Week = date_range,
+  Site = unique(rumble_weekly_means_site$Site))
+# Join this with your original data
+rumble_weekly_means_site_complete <- left_join(complete_weeks, rumble_weekly_means_site)
+###  TOO MANY ROWS
+
 # Plot average rumbles per week with linear regression line per strata
-rumbleWklyStrata<-ggplot(rumble_weekly_means_site, aes(x=as.Date(WeekDate),y=MeanDailyRumbles))+
-        #geom_errorbar(aes(ymin=MeanDailyRumbles-seDailyRumbles, ymax=MeanDailyRumbles+seDailyRumbles), width=.1) +
-        geom_line()+
-        geom_point()+
-        geom_errorbar(aes(ymin = MeanDailyRumbles - sd_rumbles,
-                          ymax = MeanDailyRumbles + sd_rumbles),
-                      width = 0.2)
-        #stat_summary(fun.data=mean_cl_normal)+
-        geom_smooth(method='lm')+
-        facet_wrap(~Strata)+
-        scale_x_date(date_breaks = "4 month", date_labels = "%b-%Y")+
-        theme(axis.text.x=element_text(angle=60, hjust=1),plot.title = element_text(hjust = 0.5),
-              panel.grid.major = element_line(colour="white", size=0.5))+
-        xlab("Month-Year")+
-        ylab("Average Daily Rumbles per Week")+
-        ggtitle("Average Daily Elephant Rumbles per Week by Strata")
- print(rumbleWklyStrata)
- ggsave(plot = rumbleWklyStrata,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_plot.png",sep=""),width =10, height =10)
- ggsave(plot = rumbleWklyStrata,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_plot.eps",sep=""),width =10, height =10)
+if("Strata" %in% names(rumble_weekly_means_site_complete)){
+    rumbleWklyStrata<-ggplot(rumble_weekly_means_site_complete, aes(x=as.Date(WeekDate),y=MeanDailyRumbles))+
+            geom_line()+
+            geom_point()+
+            geom_errorbar(aes(ymin = MeanDailyRumbles - seDailyRumbles,
+                              ymax = MeanDailyRumbles + seDailyRumbles),
+                          width = 0.2)+
+            #stat_summary(fun.data=mean_cl_normal)+
+            geom_smooth(method='lm', se = TRUE, size = 1.2, linetype = "dashed", aes(color = Strata))+
+            theme_bw() +
+            facet_wrap(~Strata)+
+            scale_x_date(date_breaks = "6 month", date_labels = "%b-%Y") +
+            scale_y_continuous(
+              name = "Average Daily Rumbles per Week",
+              limits = c(0, max(rumble_weekly_means_site_complete$MeanDailyRumbles +
+                                  rumble_weekly_means_site_complete$seDailyRumbles, na.rm = TRUE)),
+              breaks = seq(0, max(rumble_weekly_means_site_complete$MeanDailyRumbles +
+                                    rumble_weekly_means_site_complete$seDailyRumbles, na.rm = TRUE),
+                           by = 50),
+              minor_breaks = NULL,
+              expand = c(0,0))+  # This removes the space below 0
+            theme(axis.text.x=element_text(angle=60, hjust=1),plot.title = element_text(hjust = 0.5),
+                  panel.grid.major = element_line(colour="white", size=0.5))+
+            labs(title = "Average Daily Elephant Rumbles per Week by Strata",
+                 x = "Week (month-year)",
+                 y = "Average Daily Rumbles per Week (+/- SE)")
+     print(rumbleWklyStrata)
+     ggsave(plot = rumbleWklyStrata,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_plot.png",sep=""),width =10, height =10)
+     ggsave(plot = rumbleWklyStrata,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_plot.eps",sep=""),width =10, height =10)
+}
+
+# plot weekly mean rumbles with secondary weekly night mean rumbles axis
+ rumbleWklyStrata_WithNight <- ggplot(rumble_weekly_means_site) +
+   # Primary axis elements
+   geom_line(aes(x = WeekDate, y = MeanDailyRumbles)) +
+   geom_point(aes(x = WeekDate, y = MeanDailyRumbles)) +
+   geom_errorbar(aes(x = WeekDate,
+                     ymin = MeanDailyRumbles - seDailyRumbles,
+                     ymax = MeanDailyRumbles + seDailyRumbles),
+                 width = 0.2) +
+   geom_smooth(aes(x = WeekDate, y = MeanDailyRumbles, color = Strata),
+               method = 'lm', se = TRUE, size = 1.2, linetype = "dashed") +
+   # Secondary axis elements for night rumbles
+   geom_line(aes(x = WeekDate, y = meanRumblesNight),
+             color = "red", linetype = "dotted") +
+   geom_point(aes(x = WeekDate, y = meanRumblesNight),
+              color = "red") +
+   # Facets and themes
+   facet_wrap(~Strata) +
+   theme_bw() +
+   # Axis formatting
+   scale_x_date(date_breaks = "6 month", date_labels = "%b-%Y") +
+   scale_y_continuous(
+     name = "Average Daily Rumbles per Week (+/- SE)",
+     limits = c(0, max(rumble_weekly_means_site$MeanDailyRumbles +
+                         rumble_weekly_means_site$seDailyRumbles, na.rm = TRUE)),
+     breaks = seq(0, max(rumble_weekly_means_site$MeanDailyRumbles +
+                           rumble_weekly_means_site$seDailyRumbles, na.rm = TRUE),
+                  by = 50),  # Adjust this value to change break frequency
+     expand = c(0,0),
+     sec.axis = sec_axis(~.,
+                         name = "Average Night Rumbles per Week (+/- SE)",
+                         breaks = seq(0, max(rumble_weekly_means_site$MeanDailyRumbles +
+                                               rumble_weekly_means_site$seDailyRumbles, na.rm = TRUE),
+                                      by = 50))  # Adjust this value to match primary axis
+   ) +
+   # Theme elements
+   theme(axis.text.x = element_text(angle = 60, hjust = 1),
+         plot.title = element_text(hjust = 0.5),
+         panel.grid.major = element_line(colour = "gray90"),  # Lighter grid lines
+         panel.grid.minor = element_blank(),
+         axis.title.y.right = element_text(color = "red"),
+         axis.text.y.right = element_text(color = "red")) +
+   # Labels
+   labs(title = "Average Daily Elephant Rumbles per Week by Strata",
+        x = "Week (month-year)",
+        color = "Strata")
+ print(rumbleWklyStrata_WithNight)
+ ggsave(plot = rumbleWklyStrata_WithNight,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_withNight_plot.png",sep=""),width =10, height =10)
+ ggsave(plot = rumbleWklyStrata_WithNight,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_withNight_plot.eps",sep=""),width =10, height =10)
+
 
 # Plot Proportional rumbles (accounting for sampling effort)
- plot3 <- ggplot(weekly_summary, aes(x = WeekDate, y = prop_rumbles)) +
-   geom_line(aes(group = sequence(rle(!is.na(prop_rumbles))$lengths))) +
+ WeeklyNightRumblesperSite <- ggplot(rumble_weekly_means_site, aes(x = WeekDate, y = `Proportion Night Rumbles`)) +
+   geom_line(aes(group = sequence(rle(!is.na(`Proportion Night Rumbles`))$lengths))) +
    geom_point() +
    theme_bw() +
-   labs(title = "Proportional Rumbles per Week",
+   facet_wrap(~Site)+
+   labs(title = "Proportional Night Rumbles per Week per Site",
         x = "Week",
-        y = "Rumbles per Day")
+        y = "Proportion of Night Time Rumbles per Week")
+ print(WeeklyNightRumblesperSite)
 
 # Summary table by Strata
 if("Strata" %in% names(rumble_weekly_means_site)){
@@ -589,8 +727,6 @@ if("Strata" %in% names(rumble_weekly_means_site)){
 }
 
 
-
-
 # lm model
   # library(broom)
   #
@@ -612,7 +748,149 @@ if("Strata" %in% names(rumble_weekly_means_site)){
   # plot(rumble_weekly_means_site$MeanDailyRumbles~as.numeric(rumble_weekly_means_site$JulianWeek))+
   #   abline(lm_rumbles)
 
-##### average rumbles per month per site #####
+#### MONTHLY SUMMARIES ####
+ # add number of days sampled per month
+ # add number of rumbles per sampled date value
+ # plot proportion of night rumbles per month
+ rumble_weekly_means_site$Year <- year(rumble_weekly_means_site$WeekDate)
+ rumble_weekly_means_site$Month <- month(rumble_weekly_means_site$WeekDate)
+
+ ##### average rumbles per month per stratum #####
+ rumble_monthly_means_stratum <- rumble_weekly_means_site %>%
+   group_by(Year,Month,Strata) %>%
+   summarise(
+     MeanDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else mean(sumRumbles, na.rm=TRUE),
+     sdDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else sd(sumRumbles, na.rm=TRUE),
+     n = n(),
+     seDailyRumbles = sdDailyRumbles/sqrt(n),
+     maxDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else max(sumRumbles, na.rm=TRUE),
+     minDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else min(sumRumbles, na.rm=TRUE),
+     sumRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else sum(sumRumbles, na.rm=TRUE),
+     sumNightRumbles = if(all(is.na(sumRumblesNight))) NA_real_
+     else sum(sumRumblesNight,na.rm=TRUE),
+     meanNightRumbles = if(all(is.na(sumRumblesNight))) NA_real_
+     else mean(sumRumblesNight,na.rm=TRUE),
+     proportionNightRumbles = sumNightRumbles/sumRumbles
+   )
+ sum(rumble_monthly_means_stratum$sumRumbles, na.rm=T) #36236
+ rumble_monthly_means_stratum$`Year-Month` <- as.Date(paste(rumble_monthly_means_stratum$Year, rumble_monthly_means_stratum$Month, "01", sep = "-"))
+ write.table(rumble_monthly_means_stratum,"PNNN_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_dailyMean_Stratum.txt",sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+
+
+ #plot stratum separate
+ rumble_monthly_means_stratum_plot <- ggplot(rumble_monthly_means_stratum, aes(x=`Year-Month`,y=MeanDailyRumbles))+
+                 geom_errorbar(aes(ymin=MeanDailyRumbles-seDailyRumbles, ymax=MeanDailyRumbles+seDailyRumbles), width=.1) +
+                 geom_line(color =  "dark blue")+
+                 geom_point()+
+                 stat_summary(fun.data=mean_cl_normal)+
+                 geom_smooth(method='lm')+
+                 facet_wrap(~Strata)+
+                 scale_x_date(date_breaks = "6 months",
+                              date_labels = "%b-%Y")+
+                 scale_y_continuous()+
+                 theme(axis.text.x = element_text(angle = 60, hjust = 1),
+                       plot.title = element_text(hjust = 0.5),
+                       panel.grid.major = element_line(colour = "white"),  # Lighter grid lines
+                       panel.grid.minor = element_blank())+
+                 labs(title = "Average Number of Rumbles per Week per Month by Stratum",
+                      x = "Date (Month-Year)",
+                      y = "Average Number of Rumbles per Week (+/- SE)")
+print(rumble_monthly_means_stratum_plot)
+ggsave(plot = rumble_monthly_means_stratum_plot,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_perMonth_plot.png",sep=""),width =10, height =10)
+ggsave(plot = rumble_monthly_means_stratum_plot,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_perMonth_plot.eps",sep=""),width =10, height =10)
+
+
+ # plot stratum together (note that month 38 has 0 detections. Check sound check for this month)
+rumble_monthly_means_stratum_plot_combined <- ggplot(rumble_monthly_means_stratum, aes(x=`Year-Month`,y=MeanDailyRumbles,group=Strata,color=Strata))+
+                 geom_errorbar(aes(ymin=MeanDailyRumbles-seDailyRumbles, ymax=MeanDailyRumbles+seDailyRumbles), width=.1) +
+                 geom_line(color =  "dark blue")+
+                 geom_point()+
+                 stat_summary(fun.data=mean_cl_normal)+
+                 geom_smooth(method='lm',se=TRUE)+
+                 #facet_wrap(~stratum)+
+                 scale_y_continuous()+
+                 scale_x_date(date_breaks = "6 months",
+                              date_labels = "%b-%Y")+
+                 theme(axis.text.x = element_text(angle = 60, hjust = 1),
+                       plot.title = element_text(hjust = 0.5),
+                       panel.grid.major = element_line(colour = "white"),  # Lighter grid lines
+                       panel.grid.minor = element_blank())+
+                 labs(title = "Average Number of Rumbles per Week per Month by Stratum",
+                      x = "Date (Month-Year)",
+                      y = "Average Number of Rumbles per Week (+/- SE)")
+print(rumble_monthly_means_stratum_plot)
+ggsave(plot = rumble_monthly_means_stratum_plot_combined,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_perMonthCombined_plot.png",sep=""),width =10, height =10)
+ggsave(plot = rumble_monthly_means_stratum_plot_combined,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_perMonthCombined_plot.eps",sep=""),width =10, height =10)
+
+
+ # lm model
+ library(broom)
+
+ lm_rumbles_stratum <-
+   rumble_monthly_means_stratum %>%
+   nest(data = -Strata) %>%
+   mutate(model = map(data, ~lm(MeanDailyRumbles~`Year-Month`,na.action = na.exclude, data = .)), tidied = map(model, tidy)) %>%
+   unnest(tidied)
+
+ plot(rumble_monthly_means_stratum$MeanDailyRumbles~rumble_monthly_means_stratum$`Year-Month`,
+      col=c("red", "green","blue")[factor(rumble_monthly_means_stratum$Strata)])
+ abline(lm_rumbles_stratum)
+
+
+ ##### average rumbles per month per stratum #####
+ # add number of days sampled
+ rumble_monthly_means_stratum <- rumble_weekly_means_site %>%
+   group_by(Year,Month,Site, Strata, `Vegetation Class`,Latitude,Longitude) %>%
+   summarise(
+     MeanDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else mean(sumRumbles, na.rm=TRUE),
+     sdDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else sd(sumRumbles, na.rm=TRUE),
+     n = n(),
+     seDailyRumbles = sdDailyRumbles/sqrt(n),
+     maxDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else max(sumRumbles, na.rm=TRUE),
+     minDailyRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else min(sumRumbles, na.rm=TRUE),
+     sumRumbles = if(all(is.na(sumRumbles))) NA_real_
+     else sum(sumRumbles, na.rm=TRUE),
+     sumNightRumbles = if(all(is.na(sumRumblesNight))) NA_real_
+     else sum(sumRumblesNight,na.rm=TRUE),
+     meanNightRumbles = if(all(is.na(sumRumblesNight))) NA_real_
+     else mean(sumRumblesNight,na.rm=TRUE),
+     proportionNightRumbles = sumNightRumbles/sumRumbles
+   )
+ sum(rumble_monthly_means_stratum$sumRumbles, na.rm=T) #36236
+ rumble_monthly_means_stratum$`Year-Month` <- as.Date(paste(rumble_monthly_means_stratum$Year, rumble_monthly_means_stratum$Month, "01", sep = "-"))
+ write.table(rumble_monthly_means_stratum,"PNNN_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_dailyMean_Stratum.txt",sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+
+
+ #plot monthly by site
+ rumble_monthly_means_site_plot <- ggplot(rumble_monthly_means_stratum, aes(x=`Year-Month`,y=MeanDailyRumbles))+
+   geom_errorbar(aes(ymin=MeanDailyRumbles-seDailyRumbles, ymax=MeanDailyRumbles+seDailyRumbles), width=.1) +
+   geom_line(color =  "dark blue")+
+   geom_point()+
+   stat_summary(fun.data=mean_cl_normal)+
+   geom_smooth(method='lm')+
+   facet_wrap(~Strata)+
+   scale_x_date(date_breaks = "6 months",
+                date_labels = "%b-%Y")+
+   scale_y_continuous()+
+   theme(axis.text.x = element_text(angle = 60, hjust = 1),
+         plot.title = element_text(hjust = 0.5),
+         panel.grid.major = element_line(colour = "white"),  # Lighter grid lines
+         panel.grid.minor = element_blank())+
+   labs(title = "Average Number of Rumbles per Week per Month by Stratum",
+        x = "Date (Month-Year)",
+        y = "Average Number of Rumbles per Week (+/- SE)")
+ print(rumble_monthly_means_stratum_plot)
+ ggsave(plot = rumble_monthly_means_stratum_plot,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_perMonth_plot.png",sep=""),width =10, height =10)
+ ggsave(plot = rumble_monthly_means_stratum_plot,paste(output,"/",proj_dep_name,"_RumbleWeeklyStrata_perMonth_plot.eps",sep=""),width =10, height =10)
 
 
 # #plot
@@ -624,7 +902,7 @@ if("Strata" %in% names(rumble_weekly_means_site)){
 #   #geom_smooth(method='lm')+
 #   facet_wrap(~Site)+
 #   scale_y_continuous()
-#
+
 # ##### average rumbles per month per stratum #####
 # rumble_monthly_means_stratum <- ele_daily_rand_latLong_PNNNGrid %>%
 #   group_by(YearMonth,YearMonthNum,stratum) %>%
@@ -678,36 +956,6 @@ if("Strata" %in% names(rumble_weekly_means_site)){
 # plot(rumble_monthly_means_stratum$MeanDailyRumbles~as.numeric(rumble_monthly_means_stratum$YearMonthNum),
 #      col=c("red", "green","blue")[factor(rumble_monthly_means_stratum$stratum)])
 # abline(lm_rumbles_stratum)
-#
-#
-# #### WEEKLY SUMMARIES ####
-# # (need to finish writing script)
-#
-# # by site
-# ele_weekly_rand_latLong_PNNNGrid_sites <- ele_daily_rand_latLong_PNNNGrid %>%
-#   group_by(Site, Latitude, Longiture, YearWeek, YearMonth, YearMonthNum, Month, Week,`Vegetation Class`) %>%
-#   summarise(
-#     SumRumbles = if(all(is.na(`Sum Rumbles`))) NA_real_
-#     else sum(`Sum Rumbles`, na.rm = T),
-#     SumBadSounds_h = if(all(is.na(Sum_Bad_Sounds_h))) NA_real_
-#     else sum(Sum_Bad_Sounds_h, na.rm = T),
-#     MeanDailyRumbles = if(all(is.na(`Sum Rumbles`))) NA_real_
-#     else mean(`Sum Rumbles`, na.rm = T),
-#     sdDailyrumbles = if(all(is.na(`Sum Rumbles`))) NA_real_
-#     else sd(`Sum Rumbles`, na.rm = T),
-#     n = n(),
-#     seDailyRumbles = sdDailyRumbles/sqrt(n),
-#     maxDailyRumbles = if(all(is.na(`Sum Rumbles`))) NA_real_
-#     else max(`Sum Rumbles`, na.rm=TRUE),
-#     minDailyRumbles = if(all(is.na(`Sum Rumbles`))) NA_real_
-#     else min(`Sum Rumbles`, na.rm=TRUE)
-#   )
-# sum(ele_weekly_rand_latLong_PNNNGrid_sites$SumRumbles, na.rm=T) #36284
-#
-# #plot
-# ggplot(ele_weekly_rand_latLong_PNNNGrid_sites, aes(x=as.numeric(YearMonthNum),y=MeanDailyRumbles))+
-#   geom_point()
-#
 #
 
 
