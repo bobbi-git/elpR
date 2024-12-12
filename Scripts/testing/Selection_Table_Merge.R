@@ -49,6 +49,8 @@ for (j in 1:length(folder)){
 }
 
 
+### TESTING ZONE ###
+
 library(data.table)
 first <- data.table(index = c("a", "a", "b", "c", "c"),
                     type = 1:5,

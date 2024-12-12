@@ -40,7 +40,7 @@ zero_txt <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/HH_zero_de
 # gunshot_tables <-
 
 project_name <- "PNNN" # name of project (e.g., "PNNN", "DzangaBai", etc.)
-deployment_num <- "01-17" # deployment(s) number (e.g., "01-12", "04")
+deployment_num <- "01-18" # deployment(s) number (e.g., "01-12", "04")
 detector_name <- "HHv6" # # name of the detector used for these data. For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1. For other, type the name. Do not include spaces or special characters
 
 fileDurationMin <- 1440 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
