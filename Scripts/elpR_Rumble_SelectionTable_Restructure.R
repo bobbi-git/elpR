@@ -17,8 +17,8 @@ rm(list = ls())
 
 #3) Provide Detector information
   Detector <- "HHv6" # For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1
-  Detector_ScoreThreshold <- 0.2 # The score that the detector was run with
-  Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by
+  Detector_ScoreThreshold <- 0.2 # The score that the detector was run with (0.2 for Hori-Harm rumbles)
+  Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by (0.4 for Hori-harm rumbles)
 
 #4) Run line below to restructure the gunshot detector selection tables
   Rumble_Selection_Table_Restructure(HH_selection_tables)
