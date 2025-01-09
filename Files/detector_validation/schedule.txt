@@ -1,0 +1,2 @@
+Begin Date	Begin Time	End Date	End Time
+8/24/2018	12:00:00	8/25/2018	0:00:00
