@@ -76,7 +76,7 @@ sound.check <- function (x)
   colnames(check) <- c("File Path","Current File Name","File Size (Bytes)","File Duration (s)")  # name columns
 
   check$'File Size (GB)' <- round(check$`File Size (Bytes)`/1073741824,4) #  file size in GB
-  check$Site <- sub("\\_","",str_extract(check$`Current File Name`,"[a-z]{2}\\d{2}[a-z]{1}."))
+  check$Site <- sub("\\_","",str_extract(check$`Current File Name`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}."))
   #check$Site <- substr(str_extract(check$`Current File Name`,"[a-z]{2}\\d{2}[a-z]{1}_*"),1,nchar(str_extract(check$`Current File Name`,"[a-z]{2}\\d{2}[a-z]{1}_*"))-1) # currently does not interpret the cluster sites ("nn09c1" etc) names correctly because of extra character
   check$"Site Name Length" <- nchar(check$Site) # mark sound files that are longer or shorter than the expected file name length (25 characters, update as needed)
   check$"Site Name Length Check" <- ifelse(check$`Site Name Length`>5,"Site name too long",
