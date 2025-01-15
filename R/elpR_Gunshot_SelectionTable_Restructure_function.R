@@ -13,7 +13,7 @@
 
 
 #set working directory
-#z <- selection_tables
+#z <- guns_selection_tables
 
 gunshot_Selection_Table_Restructure <- function (z){
 
@@ -63,7 +63,9 @@ gunshot_Selection_Table_Restructure <- function (z){
   if(nrow(file_small) >0){
             file_small$dep <-deployment_num
             colnames(file_small) <- c("Empty Selection Table","Deployment")
-            file_small$Site <- substring(sub("_20.*","",file_small$'Empty Selection Table'),4) #NEED TO UPDATE THIS FOR THE CLUSTER SITE NAMES
+            #file_small$Site <- substring(sub("_20.*","",file_small$'Empty Selection Table'),4) #NEED TO UPDATE THIS FOR THE CLUSTER SITE NAMES
+            file_small$Site <- substr(str_match(file_small$'Empty Selection Table',"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1],1,
+                                      nchar(str_match(file_small$'Empty Selection Table',"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1])-1)
             file_small$Date <- substr(sub(".*Date_","",file_small$'Empty Selection Table'),start=1,stop=8)
             file_small$Date <- as.POSIXct(file_small$Date,format='%Y%m%d',origin = "1970-01-01",tz="Africa/Brazzaville") # convert format of start date and time to proper data and time format
             file_small$`Deployment Name` <- deployment_name
@@ -94,8 +96,8 @@ gunshot_Selection_Table_Restructure <- function (z){
     gun_new$"Deployment"<-deployment_num # add a deployment number column (change for each deployment)
     gun_new$Score<-as.numeric(round(gun_new$Score,digits = 3)) #round the score to 3 decimal places
     #gun_new$"Site"<-sub("_.*","",gun_new$`Begin File`)# substr(gun_new$"Begin File",1,5) #add column with the Site ID, derived from the file path name
-    gun_new$Site <- substr(str_match(gun_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_20")[,1],1,
-                    nchar(str_match(gun_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_20")[,1])-3)
+    gun_new$Site <- substr(str_match(gun_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}\\s*(.*?)\\s*_20")[,1],1,
+                    nchar(str_match(gun_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}\\s*(.*?)\\s*_20")[,1])-3)
     gun_order<-gun_new[c("Selection", "View", "Channel", "Begin Time (s)", "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
                          "Begin Path", "File Offset (s)", "Begin File", "Begin Date","Begin Clock Time","Site", "Begin Hour",
                          "File Start Date", "Score", "CFD","Gun Type","Notes", "Analyst", "Deployment")] #reorder columns
