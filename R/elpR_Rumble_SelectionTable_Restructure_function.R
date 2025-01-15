@@ -159,8 +159,8 @@ Rumble_Selection_Table_Restructure <- function (x) {
       #                        nchar(str_extract(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}_*"))-1)
       # elp_new$Site <- substr(str_match(elp_new$`Begin File`,"_([a-z]{2}\\d{2}[a-z][^_]?)_")[,2],1,
       #                        nchar(str_match(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_20")[,1])-3)
-      elp_new$Site <- substr(str_match(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}.")[,1],1,
-                              nchar(str_match(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}.")[,1])-1)
+      elp_new$Site <- substr(str_match(elp_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1],1,
+                              nchar(str_match(elp_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1])-1)
       elp_rand_data<-merge(elp_new,elp_rand,by="Begin Date",all.x=TRUE) #merge the random days (see elp_rand section above) with selection tables to mark which days were randomly reviewed
       elp_order <- elp_rand_data[c("Selection", "View", "Channel", "Begin Time (s)", "End Time (s)",
                                  "Low Freq (Hz)", "High Freq (Hz)", "Begin Path", "File Offset (s)",
