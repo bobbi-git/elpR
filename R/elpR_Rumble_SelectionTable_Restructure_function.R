@@ -34,12 +34,6 @@ Rumble_Selection_Table_Restructure <- function (x) {
     }
   }
 
-  # # install and load necessary packages
-  # sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
-  # if(!require(sel_table_struct)){
-  #   install.packages(sel_table_struct)}
-  # lapply(sel_table_struct, library, character.only=TRUE)
-
  #### PRE-CREATE SOME FILEDS FOR SCRIPT ####
 
   # default names
