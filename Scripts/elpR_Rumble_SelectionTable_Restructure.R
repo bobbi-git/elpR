@@ -21,6 +21,8 @@ rm(list = ls())
   Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by (0.4 for Hori-harm rumbles)
 
 #4) Run line below to restructure the gunshot detector selection tables
+  #three_rand_days <- "n" # if you want 3 random days per week, type "y", if not "n" (NOT ENABLED)
+  min_23hrs <- "n" # if your project requiresa minimum of 23 h per day of sound for elephant analysis, type "y", otherwise "n"
   Rumble_Selection_Table_Restructure(HH_selection_tables)
 
   # After all the files are complete:

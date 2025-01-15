@@ -81,6 +81,9 @@ Rumble_Selection_Table_Restructure <- function (x) {
   names(sound_check)[names(sound_check) == 'Current File Name'] <- 'Begin File'
   sound_problem<-sound_check[c("Begin File", "Sound Problems","Exclude (y/e)")]
   sound_problem$`Exclude (y/e)`[is.na(sound_problem$`Exclude (y/e)`)|sound_problem$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
+  if (min_23hrs == "n"){
+    sound_problem$`Exclude (y/e)`[sound_problem$`Exclude (y/e)`=="e"] <-"Good"
+  } # if 23 h per day is not required for analysis, mark "e" as "Good", otherwise, leave it as "e"
 
   # the cross reference will occur in the next step (4)
 
