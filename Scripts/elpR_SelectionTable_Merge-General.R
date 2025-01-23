@@ -8,7 +8,7 @@
 # - selection tables can have differing columns and column order - the script will standardize across tables
 # - this script will merge all selections into one table and will rename the Selection ID so they are all unique
 # - This script expects Raven Sound Selection Tables with columns: Selection, Begin Time (s),
-#        End Time (s), High Freq (s), Low Freq (s), File Offset (s), Begin File, Begin Path
+#        End Time (s), High Freq (s), Low Freq (s), File Offset (s), Begin Path
 # - output file is .txt selection table
 
 
