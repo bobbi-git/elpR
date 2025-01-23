@@ -87,6 +87,14 @@ merge_selection_tables <- function(path, recursive = TRUE) {
       # Add filename as a column (use only the file name, not full path)
       table$Selection_Table <- basename(file_names[i])
 
+      # Extract filename from Begin Path
+      if("Begin Path" %in% names(table)) {
+        table$`Begin File` <- basename(as.character(table$"Begin Path"))
+      } else {
+        cat("\nNo Begin Path column found - skipping filename extraction\n")
+      }
+
+
       # Store in list
       all_tables[[valid_tables]] <- table
       cat("File:", basename(file_names[i]), "- rows:", nrow(table), "\n")
@@ -145,7 +153,6 @@ merge_selection_tables <- function(path, recursive = TRUE) {
   cat("Number of columns:", ncol(merged_df), "\n")
   cat("\nOutput file saved as:", output_file, "\n")
 
-  return(merged_df)
 }
 
 

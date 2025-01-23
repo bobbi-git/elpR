@@ -13,6 +13,8 @@
 
 
 path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp" # directory where selection tables are saved (can have subfolders)
+# extract begin clock time from file name?
+# extract begin date from file name?
 
 # For files in a single folder:
 merge_selection_tables(path, recursive = FALSE)
