@@ -158,10 +158,6 @@ Rumble_Selection_Table_Restructure <- function (x) {
       elp_new <- elp_new %>%
         rename(Score = score_column_name)
       elp_new$Score<-as.numeric(round(elp_new$Score,digits = 3)) #round the score to 3 decimal places
-      # elp_new$Site <- substr(str_extract(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}_*"),1,
-      #                        nchar(str_extract(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}_*"))-1)
-      # elp_new$Site <- substr(str_match(elp_new$`Begin File`,"_([a-z]{2}\\d{2}[a-z][^_]?)_")[,2],1,
-      #                        nchar(str_match(elp_new$`Begin File`,"[a-z]{2}\\d{2}[a-z]{1}\\s*(.*?)\\s*_20")[,1])-3)
       elp_new$Site <- substr(str_match(elp_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1],1,
                               nchar(str_match(elp_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1])-1)
       elp_rand_data<-merge(elp_new,elp_rand,by="Begin Date",all.x=TRUE) #merge the random days (see elp_rand section above) with selection tables to mark which days were randomly reviewed
@@ -182,21 +178,14 @@ Rumble_Selection_Table_Restructure <- function (x) {
       #                     sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE), #save each table with same name into same directory
       #   } else {file.move(file_size[i],"~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded")
       #   }
-      if (Detector == "FPv1"){
-        elp_rand_sound_exclude$`Low Freq (Hz)` <- 10
-        # remove overlapping detections
-        }# if FruitPunch FPv1 detector was used, remove overlapping detections and decrease the min frequency
       if (nrow(elp_rand_sound_exclude) > 0) {
+        if (Detector == "FPv1"){
+          elp_rand_sound_exclude$`Low Freq (Hz)` <- 10
+          # remove overlapping detections
+        }# if FruitPunch FPv1 detector was used, remove overlapping detections and decrease the min frequency
         write.table(elp_rand_sound_exclude, paste(processed_HH, file_size[i], sep=""),
            sep="\t", na="", col.names=TRUE, row.names=FALSE, quote=FALSE, append=FALSE) # If table has good sounds, save the table
-      } # else {
-      #   tryCatch({
-      #     file.rename(file_size[i],paste("~/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/rumble/excluded/",substr(file_size[i],1,5),"_excludedSoundDates_",basename(file_size[i]),sep="")) # If detections are on bad ele sound day (Exclude = e or y in sound check file), move the file
-      #    }, error = function(e) {
-      #   cat("Failed to move file:", file_size[i],"\n")
-      #   cat("Error message:", e$message,"\n")
-      #   })
-      # }
+      }
   }
 
 
@@ -349,6 +338,9 @@ for (h in 1:length(files)){
 #### Summarize sampling effort and # detections per site day ####
   # sound check sound list
   ele_sounds <- sound_check
+  if (min_23hrs == "n"){
+    ele_sounds$`Exclude (y/e)`[ele_sounds$`Exclude (y/e)`=="e"] <-"Good"
+  } # if 23 h per day is not required for analysis, mark "e" as "Good", otherwise, leave it as "e"
   ele_sounds$`Exclude (y/e)`[is.na(ele_sounds$`Exclude (y/e)`)|ele_sounds$`Exclude (y/e)`==""] <-"Good"
   #ele_sounds <- ele_sounds[(ele_sounds$`Exclude (y/e)` == "Good"),]#
   ele_sounds2 <- ele_sounds[c("Site", "Begin File", "File Duration (s)", "Duration Minutes","Exclude (y/e)","Sound Problems", "File Path")]
@@ -449,8 +441,14 @@ for (h in 1:length(files)){
 
 
 # save summaries as a new tab in sound_check
-  proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=FALSE,sep="\t", check.names=FALSE))
-  ele_det_sites <- data.frame(proj_sites)
+  proj_sites <- read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=TRUE,sep="\t", check.names=FALSE)
+  ele_det_sites <- data.frame(Site = unique(proj_sites$Site))
+
+  ele_det_duration_sites_sum <- aggregate(
+    subset(ele_sound_dets_sum, `Exclude (y/e)` == "Good")$`Duration (Hrs)`,
+    by = list(Site=subset(ele_sound_dets_sum, `Exclude (y/e)` == "Good")$Site),
+    FUN=sum,
+    na.rm = TRUE)
 
   if(three_rand_days == "y") {
     ele_det_ScoreThreshold_rand_sites_sum <- aggregate(
@@ -466,26 +464,41 @@ for (h in 1:length(files)){
     )
   }
 
-  # ifelse(three_rand_days == "y",
-  #     ele_det_ScoreThreshold_rand_sites_sum <- aggregate(ele_sound_dets_sum$`Sum Rumbles for Rand Days > Filtered Detector Threshold`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE),
-  #     ele_det_ScoreThreshold_rand_sites_sum <- )
-  ele_det_ScoreThreshold_sites_sum <- aggregate(ele_sound_dets_sum$`Sum Rumbles > Filtered Detector Threshold`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE)
-  ele_det_DetectorThreshold_sites_sum <- aggregate(ele_sound_dets_sum$`Sum Rumbles > Detector Threshold`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE)
-  #ele_det_duration_sites_sum <- aggregate(ele_sound_dets_sum$`Duration (Hrs)`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE)
-  ele_det_duration_sites_sum <- aggregate(
-    subset(ele_sound_dets_sum, `Exclude (y/e)` == "Good")$`Duration (Hrs)`,
-    by = list(Site=subset(ele_sound_dets_sum, `Exclude (y/e)` == "Good")$Site),
+  ele_det_ScoreThreshold_sites_sum <- aggregate(
+    ele_sound_dets_sum$`Sum Rumbles > Filtered Detector Threshold`,
+    by = list(Site=ele_sound_dets_sum$Site),
     FUN=sum,
     na.rm = TRUE)
 
-  rumble_sound_stats <- cbind(ele_det_duration_sites_sum$Site,ele_det_duration_sites_sum$x,ele_det_DetectorThreshold_sites_sum$x,ele_det_ScoreThreshold_sites_sum$x,ele_det_ScoreThreshold_rand_sites_sum$x)
+  ele_det_DetectorThreshold_sites_sum <- aggregate(
+    ele_sound_dets_sum$`Sum Rumbles > Detector Threshold`,
+    by = list(Site=ele_sound_dets_sum$Site),
+    FUN=sum,
+    na.rm = TRUE)
+
+  # ifelse(three_rand_days == "y",
+  #     ele_det_ScoreThreshold_rand_sites_sum <- aggregate(ele_sound_dets_sum$`Sum Rumbles for Rand Days > Filtered Detector Threshold`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE),
+  #     ele_det_ScoreThreshold_rand_sites_sum <- )
+  #ele_det_duration_sites_sum <- aggregate(ele_sound_dets_sum$`Duration (Hrs)`, by = list(Site=ele_sound_dets_sum$Site),FUN=sum, na.rm = TRUE)
+
+  ele_det_duration_sites_sum <- merge(ele_det_sites, ele_det_duration_sites_sum, by = "Site", all.x = TRUE)
+  ele_det_ScoreThreshold_sites_sum <- merge(ele_det_sites, ele_det_ScoreThreshold_sites_sum, by = "Site", all.x = TRUE)
+  ele_det_DetectorThreshold_sites_sum <- merge(ele_det_sites, ele_det_DetectorThreshold_sites_sum, by = "Site", all.x = TRUE)
+  if(three_rand_days == "y") {
+    ele_det_ScoreThreshold_rand_sites_sum <- merge(ele_det_sites, ele_det_ScoreThreshold_rand_sites_sum, by = "Site", all.x = TRUE)
+  }
+
+  rumble_sound_stats <- cbind(ele_det_duration_sites_sum$Site,
+                              ele_det_duration_sites_sum$x,
+                              ele_det_DetectorThreshold_sites_sum$x,
+                              ele_det_ScoreThreshold_sites_sum$x,
+                              ele_det_ScoreThreshold_rand_sites_sum$x)
+
   colnames(rumble_sound_stats) <- c("Site","Duration (Hrs)",
                                     paste0("Number of Rumble Detections >",Detector_ScoreThreshold,sep=""),
                                     paste0("Number of Rumble Detections >",Filter_ScoreThreshold,sep=""),
                                     paste0("Number of Rand Rumble Detections >",Filter_ScoreThreshold,sep=""))
   #colnames(rumble_sound_stats) <- c("Site","Duration (Hrs)","Sum Detections","Sum p4 Detections","Sum p4 Rand Detections")
-  colnames(ele_det_sites) <- c("Site")
-  rumble_site_sound_stats <- merge(ele_det_sites,rumble_sound_stats,by = "Site",all=TRUE)# merge the sound stats and sites together
 
   wb <- loadWorkbook(file = paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""))
   if("Rumble Detector Summaries" %in% names(wb)){
@@ -493,7 +506,7 @@ for (h in 1:length(files)){
     saveWorkbook(wb, paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),overwrite=TRUE)
   }
   addWorksheet(wb, sheetName = "Rumble Detector Summaries",tabColour='green')
-  writeData(wb, sheet = "Rumble Detector Summaries", x = rumble_site_sound_stats)
+  writeData(wb, sheet = "Rumble Detector Summaries", x = rumble_sound_stats)
   saveWorkbook(wb,paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),returnValue=FALSE,overwrite=TRUE)
 
 # plot to detector summaries (total detections by sound file)

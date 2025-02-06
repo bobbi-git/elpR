@@ -15,13 +15,13 @@ rm(list = ls())
   sites <- "DSPA_DZ_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
   sample_rate <- "8kHz" # sample rate of the sound files that the detector was run on
 
+  # specify these preferences
   three_rand_days <- "y" # if you want 3 random days per week (dates are pre-selected in the R\Bobbi_Scripts\Packages\elpR\Files\rand-days\Rand_dates.csv file), type "y", if not "n" (NOT ENABLED)
   min_23hrs <- "y" # if your project requires a minimum of 23 h per day of sound for elephant analysis, type "y", otherwise "n"
   score_column_name <- "Score" # the name of your score column. In BirdNET, for example, it's Confidence, while in Hori-Harm it's Score.
-  # sound check file optional?
 
 #3) Provide Detector information
-  Detector <- "HHv6" # For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1
+  Detector <- "FPv1" # For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1
   Detector_ScoreThreshold <- 0.2 # The score that the detector was run with (0.2 for Hori-Harm rumbles)
   Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by (0.4 for Hori-harm rumbles)
 
