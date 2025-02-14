@@ -1,6 +1,8 @@
-# Sound checking audio files doe wlwphant rumble analysis
+# Sound checking audio files doe elephant rumble analysis
 # bje37
 # bobbi.estabrook@cornell.edu
+
+# load package if not yet loaded (go to Build, then Install in the right panel)
 
 # clear the environment
 rm(list = ls())

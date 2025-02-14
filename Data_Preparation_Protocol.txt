@@ -1,0 +1,223 @@
+PNNNR: Data Preparation R Scripts
+Protocol
+Contents
+BACKGROUND	1
+-	For continuous data only	1
+-	For Swift recording only	1
+-	Currently only .wav files will work (working on .flac)	1
+-	Requires Hori-harm or gunshot detector output for the	1
+1)	DOWNLOAD R AND R STUDIO ON YOUR COMPUTER	1
+a)	R:	1
+b)	R Studio:	1
+2)	DOWNLOAD SOUND FILES	2
+3)	DOWNLOAD/UPDATE elpR FOLDER	2
+4)	SOUND CHECK	3
+5)	EXCLUDE BAD SOUNDS	6
+6)	RUN THE GUNSHOT AND RUMBLE DETECTORS	7
+7)	PREPARE DETECTOR OUTPUT FOR REVIEW IN RAVEN	8
+Gunshot Detector	8
+Rumble Detector	8
+
+
+BACKGROUND
+- For continuous data only
+- For Swift recording only
+- Currently only .wav files will work (working on .flac)
+- Requires Hori-harm or gunshot detector output for the [BJE1]
+
+1) DOWNLOAD R AND R STUDIO ON YOUR COMPUTER
+a) R: https://cran.r-project.org/mirrors.html
+b) R Studio: https://posit.co/download/rstudio-desktop/
+
+2) DOWNLOAD SOUND FILES
+a) Download files from SD cards to computer or external hard drive
+b) Prepare sounds for the analysis and to run in the R scripts
+i) Use the following folder structure
+
+ii) Use the following naming convention for your sound files:
+Project_Deployment##_ SampleRatekHz_ SiteID_Box##_YYYYMMDD_HHMMSS.wav
+e.g.: Kakum_dep03_8kHz_kk01e_R1426_20230530_095123.wav
+iii) The only other files that should be in the sound folders would be SwiftOne configuration and debug .txt files. Those should stay where they are in the folder.
+
+3) DOWNLOAD/UPDATE elpR FOLDER
+* It’s always best to check for an updated version of the R package through GitHub. 
+* Save the repository locally to C:\Users\[ USERNAME]\Documents\R\Bobbi_Scripts\Packages\
+* The elpR folder should contain the folders below
+
+* In the “sites” folder, create a .txt file with a list of the sites if it does not already exist.
+o Name the file with the simple project name followed by “sites” 
+(e.g., PNNN_sites.txt)
+* Follow the structure of the files that are already in that folder (see PNNN_Sites.txt). 
+
+4) SOUND CHECK
+a) This step allows you to broadly check the parameters of the sound files, where it will highlight sound files that are empty (no data), gaps in the recording, potential recording overlap in time, time stamp issues, wrong sample rate, wrong duration of the file, etc.
+i) Navigate to the folder with the elpR project file on your computer
+C:\Users\[YourUserName]\Documents\R\Bobbi_Scripts\Packages\elpR
+ii) Open the ‘elpR.Rproj.R’ file
+1. This will open in R studio and you should see the elpR folder in the files tab of the lower right panel (see figure below)
+
+* Note that all scripts you will interact with are in the “Scripts” folder
+b) Install the elpR package by clicking “Build” in the upper right panel, then “Install”. The window should say “DONE (elpR)".
+
+c) In RStudio, open the elpR_soundCheck.R file in the “Scripts” folder by clicking on it (see figure above)
+i) Update the required fields in the script
+1. sound_path = computer path to the sound files
+2. deployment_name = deployment name (e.g., nn_202302_feb)
+3. deployment_num = the deployment number (e.g., 16)
+4. disk_ID = the disk number that contains the sound files (e.g., 01)
+5. sample_rate = the expected sample rate (Hz) of the recordings (numeric)
+6. fileDurationMin = expected sound file duration in minutes (60 for 1 hr, 1440 for 1 day)
+7. sound_file_ext = the extension of the sound file (e.g., ".wav",".flac", or ".aiff")
+8. sites = the name of the .txt file in the R\Bobbi_Scripts\Packages\elpR\Files\sites folder the contains a list of the site names for the specific project (e.g.,"PNNN_Sites.txt"). Include the file extension in this field.
+9. extra_sounds_folder = the path for a folder where you would like the bad sounds moved to. 
+ii) Run the sound.check(sound_path) line. You do not need to change anything on this line
+1. This function will read each sound file and identify if the sound file does not meet the specified criteria from the fields above.
+2. Output from the script includes an Excel workbook with multiple spreadsheets.
+3. Warning: This script can take a long time (+30 minutes) to run on lots of files (e.g., 1hr long files). I can also depend on the speed of the drive the script is reading sounds from.
+d) When the script is complete, an Excel table will be created in \elpR\Files\sound_check folder, and the name of the file will include the deployment name, number, and disk number that was defined above (e.g., “Sound_Check_Reports_nn_202302_feb_dep16_d02.xlsx”).
+i) The workbook contains the following spreadsheets:
+1. Sounds:
+(a) A list of each sound file, with: 
+* Site name: Site name parsed from sound file name
+* File Path: computer location of sound file
+* Current File Name: should follow naming convention described in Part 2 (e.g., Kakum_dep03_8kHz_kk01e_R1426_20230530_095123.wav)
+* Site Name Length Check: marks if number of characters in site portion of the sound name match expected length (5, including extension)
+* Current File Start DateTime: Date and time based on current sound file name
+* Calculated End DateTime: calculated from duration of sound file (for continuous data)
+* Begin Date: The date the sound file begins on (based on YYYYMMDD in file name)
+* File Duration (s): Duration of the sound file in seconds
+* Duration Minutes: Duration of the sound file in minutes
+* Duration Hours: Duration of the sound file in hours
+* File Duration Check: Checks if file duration matches that specified by the user in script (fileDurationMin)
+* Duration (DHMS): Duration of the file in days, hours, minutes and seconds
+* Total Hours in Date per Site: The number of recording hours in the date of the sound file
+* File Length Check: Marks sound files with length 0 (0 seconds) as "No Data"
+* File Size (GB): Size of the sound file in gigabytes
+* SampleRate: Sample rate of the sound file in Hz
+* Sample_Rate_Check: Checks if sample rate matches expected based on used input from script (sample_rate)
+* Year Check: If year is 2000 (indicating a Swift clock reset), it is marked as the Wrong Year
+* Expected File Start Difference minutes: Difference in minutes between the start time of the file to the expected start time of the file based on the duration of the previous file. 
+* Sound Gap Check: marks if the sound file represents a gap (when there > 3 minutes between consecutive sound files for a single site) in recording time or overlaps in time with the timestamp of another sound file for the same site. We do not trust the timestamps on sound with overlap or large gaps.
+* Exclude (y/e): Sounds marked as “y” include those with no data or are <1 minute in duration, and sound time overlap. These sounds will be excluded by the Sound Exclude function in later steps. Sounds marked as “e” indicate that the date for this sound file does not contain a total of 23 hours of sounds, and this file will be excluded from the rumble analysis. This will happen with the Hori-Harm Selection Table Restructure script in later steps.
+* Sounds <1 minute in duration (gunshots & elephants) will be marked with a ‘y’
+* Note: The detectors will not run on sounds files of 0 s duration and 0 bytes are in the folders, so will be marked with a ‘y’ in the Exclude (y/e) column by the sound.check script
+* All sounds after sound overlap should be deleted because we can’t trust the timestamp after that point[BJE2]. You will need to evaluate these situations and manually add a “y” to those sounds as needed.
+* Sounds with less than 23 hours for a day will be marked with an ‘e’. Since the elephant analysis should only be conducted on full days [23+ hrs] to capture all hours of the survey equally, these sound will be excluded from the rumble analysis in later steps.[BJE3]
+* Notes: Summarized notes on sound problems per file
+* Deployment: From the user-defined deployment_num value in the script
+2. File Name Length: Number of files with normal name length (25 characters) and non-normal name length per site
+3. File Duration: Number of files with expected duration and other durations per site
+4. Wrong Year: Number of files with the wrong year (e.g., 2000) per site
+5. Sound Gap-Overlap: Number of files with overlap or gap in timestamp relative to next files per site
+6. Duration 0s: Number of files with 0s or no data per site
+7. Sound File Count: Number of sound files per site
+8. Sample_Rate: Number of sound files per sample rate per site
+9. Sound Stats: Summaries of sounds per site
+ii) Review the spreadsheet and check for sound problems marked in the “Sounds” tab and in the summary tabs. The summary tabs will contain information on the number of sound files with or without specific sound problems. Sound problems include:
+(a) On the “Sounds” tab, look for bad sounds (use the summaries tabs to help guide you to the sites with problems) and mark bad sounds with a “y” in the “Exclude (y/e)” column
+5) EXCLUDE BAD SOUNDS 
+a) The next step will be to move bad sounds out of the sound folders
+i) Important: 
+1. Only run this step after all the sounds file problems in the ‘Sound_Check_Reports’ excel sheet have been checked and all the files that are to be excluded have been marked with ‘y’ and sounds that are to be excluded from the elephant analysis marked with ‘e’
+2. Do not rename the ‘Sound_Check_Reports’ sheet or move it out of this folder. The script will find it in the PNNNR\Files\sound_check folder automatically, and looks for the specific file name that was produced in step 3.
+ii) Open the elpR_sound_check.R file in R from the \elpR\Scripts (see figure above)
+1. Load the elpR package if it is not yet loaded (see section 4.b)
+2. Update the required fields in the R script (if needed)
+(a) sound_path = computer path to the sound files
+(b) deployment_name = deployment name (e.g., nn_202302_feb)
+(c) deployment_num = the deployment number (e.g., 16)
+(d) disk_ID = the disk number that contains the sound files (e.g., 01)
+(e) sample_rate = the expected sample rate (Hz) of the recordings (numeric)
+(f) fileDurationMin = expected sound file duration in minutes (60 for 1 hr, 1440 for 1 day)
+(g) sound_file_ext = the extension of the sound file (e.g., ".wav",".flac", or ".aiff")
+(h) sites = the name of the .txt file in the R\Bobbi_Scripts\Files\sites folder the contains a list of the site names for the specific project (e.g.,"PNNN_Sites.txt"). Include the file extension in this field.
+(i) Extra_sounds_folder = folder where you want the bad sound files to be moved to
+(j) have_SwiftFiles = set to “y” if you have Swift Config and Debug .txt files in the sound folders. Setting to “y” will rename the .txt files with the site ID and move them out of the sound folder into the elpR\Files\swift_files folder. If not “y”, then it will not rename or move any .txt files. We use this feature to automatically rename the files out because the files do not have unique, distinguishing names (they are all the same name) and can overwrite eachother if copied to the same location. Secondly, this feature will remove the .txt files from the sound folders because our detectors will not work if another file type is in the folder with the sound files.
+(k) merge_swift_files = set to “y” if you want the swift files to be merged into one file. This will not work if the swift files have different file structure. This will not delete the original swift files, but will create a merged copy of them as a .txt file in the elpR\Files\swift_files folder.
+iii) Run the sound.exclude function
+1. This script will:
+(a) Add the site name to Swift .txt files and move them out of the site folder to the ‘~elpR/Files/swift_files folder if have_SwiftFiles was set to “y”.
+(b) move the sound files that are marked with a ‘y’ to the sound exclude folder that the user defined in the script. It will not delete any sounds. 
+(c) Summarize the total excluded sound files per site and adds a tab to the ‘Sound_Check_Reports’ excel sheet with the summary (this is why you should not rename or move this excel workbook in the R project folder). 
+(i) Tracking this information is helpful to quantify how many sounds files are bad and helps with troubleshooting sound problems with the recording devices)
+6) RUN THE GUNSHOT AND RUMBLE DETECTORS
+a) First run decimation with Raven Compass if needed
+b) Only after the bad sound files (those marked with a ‘y’ in the sound check spreadsheet) have been moved to the extra files folder
+7) PREPARE DETECTOR OUTPUT FOR REVIEW IN RAVEN[BJE4]
+a) This script will clean up the detector output using the R scripts and prepare them for analysis in Raven Pro
+b) The steps below require that the sound_check file was already made and is in the Packages\elpR\sound_check\ folder with the file name unchanged. If you must change the file name, only do so after running the steps below to both detectors.
+c) Note: This script will only work on sites for the corresponding sound check file, so make sure you run this for each sound check file (for example if you had multiple disks for one deployment, each with a different set of sites on it, then you would have separate sound check files that correspond to those disks and sites).
+Gunshot Detector
+1. Copy 
+2. Gunshot detector output tables by site
+Rumble Detector
+WARNING: Make sure the Packages\elpR\Files\Selection_Tables\rumble\raw folder is empty (except for the .gitignore file) and that there are no selection tables from previous deployments in this folder before running the script. If there are any files from previous deployments in the folder, make sure you have a copy of them elsewhere and delete them from the raw folder. Do not delete folders in the Packaged\elpR\Files\Selection_Tables\rumble\final folder (see image below of folders not to delete).[BE5]
+
+* Detector output is required to be in subfolders. Typically, these would be site-specific folders, but if all detections are created by the stand-alone detector, they will all be in one folder. Call this folder “HH_detecions_brut[BJE6]”
+1. Copy the hori-harm detector output to the Packages\elpR\Files\Selection_Tables\rumble\raw folder (or to the HH_detections_brut folder if they are not in site-specific folders). IMPORTANT: The script expects the detector files to be in a folder that is inside the raw folder.
+2. Open the “elpR.Rproj” project file in the elpR folder. This should open R studio
+3. In the upper right panel of R Studio, click the Build tab, and then click the drop-down arrow next to Install. Then click Install Package
+
+You should see that the elpR package installed in the console below (see image above)
+4. In the “Files” tab of the lower right panel in RStudio
+(a) navigate to the Scripts folder
+(i) open the “elpR_Rumble_SelectionTable_Restructure.R” file
+(ii) update deployment information in lines 28 and 29 and run them
+1. deployment_name: name of your deployment. No specific character structure, but do not allow spaces in the characters. Our usual convention is the 2-character project code (e.g., “nn”), the 4-digit year and 2-digit month (e.g., “202311”) and the 3-character month name (e.g., “nov”), separated by and underscore “_” (example: “nn_202311_nov”)
+2. deployment_num: a 2-digit number that represents the deployment number. For example, the second deployment would be “02”. The nineteenth deployment would be “19”.
+(iii) Update the disk ID number (line 30) with a unique disk number that the files sound files for the sites with detections are on, and run the line. This is important when the detector files are split across multiple disks. This unique value prevents a sound check file from being overwritten when there are multiple disks used for the same deployment.
+1. disk_ID:  any characters that help distinguish the files that are saved on unique disks. If everything is on one disk, then you can use “00”. There is no specific nomenclature for this field
+(iv) update the list of sites (line 31) for your project, and run the line. This is simply a .txt file that lists the sites in your project, with no heading. See example files in the Files/Sites folder. Make sure to include the “.txt” part of the file name.
+1. If the file does not exist, create one in that folder and name it with your project name. You can always add new sites to this file if new sites are added to your project. Follow the site naming convention (2-characters, 2 digits, 1 character like “nn01a”) for your sites.
+(v) Specify the sample rate that was used for the sound files the detector was run on (line 32) and run the line. This is a character string, not numeric, so you can use “8kHz” or “4000Hz”. This will be added to the file name so there is a record of the sample rate. Us the sample rate of the sound files that the detector was run on. If sound files were decimated from 32 kHz to 8 kHz and the detector was run on the 8 kHz sound files, then use “8kHz” in this line.
+5. Update the Detector information in lines 35 – 37 and run those lines
+(a) Detector: name of the detector used for rumble detection (alphanumeric)
+* Hori-Harm = “HHv6”
+* FruitPunch detector = “FPv1”
+* Stanford detector = “SDv1”
+(b) Detector_ScoreThreshold: The score that was applied to the detector when it ran on the sound files (numeric)
+(c) Filter_ScoreThreshold: The score that you would like to further filter the detector results by prior to analysis (numeric)
+6. The script can take a bit to complete running, but should not take longer than 10 minutes. It depends on the number of detections it is processing.
+7. After the script completes, check for error messages in the R console. If you encounter an error message, contact Bobbi (bje37@cornell.edu)
+8. If there are no error messages, check for the following files in the folders below:
+(a) Empty tables .txt file: \PNNNR\Files\Empty_Tables\rumble
+
+(i) This is a list of selection tables that had no detections with a score > 0.2
+(b) Detector Selection tables:
+
+(i) Raw detector output with score >0.2: PNNNR\Files\HH_Tables\rumble\final\p2_raw
+(ii) Detector output with score 0.2-0.4: PNNNR\Files\HH_Tables\rumble\final\p2-p4_raw
+(iii) Detector output with score >0.4 for random and non-random dates: PNNNR\Files\HH_Tables\rumble\final\p4_nonrand_raw
+(iv) Detector output for score >0.4 for random dates: PNNNR\Files\HH_Tables\rumble\final\p4_rand_raw
+(v) Detector output for score >0.4 for random dates to be reviewed by analysts: PNNNR\Files\HH_Tables\rumble\final\p4_rand_counted
+(c) Plots with the number of detections per site and day: PNNNR\Files\num_events\rumble
+
+(d) Sound Check file: PNNNR\Files\sound_check
+
+(i) The sound check spreadsheet will have an updated tab called “Rumble Detector Summaries” in green
+
+(e) Selection table with sound files that did not have detections at score >0.4: PNNNR\Files\zero_days_SSTs\rumble
+
+
+
+
+Needs for the R GUI
+* Shiny app with buttons
+o User controls input and output paths
+o selects detector from list or adds custom
+o inputs the detector score threshold values
+o user types in expected duration of file and sample rate
+o user check box if rand dates needed
+o user check box if swift files need to be renamed and moved from sound folder
+* Auto update packages when deprecated or incompatible with R version
+o Check compatibility
+* Prompt user when something is missing or doesn’t meet the format requirements
+o Give specific reasons why the input doesn’t meet expectations so the use can fix it
+* Plots and visuals in a GUI window
+o Allow interactive plot in window so user can hover over data points and get information
+[BJE1]Move this to specific sections that it's relevant to.
+[BJE2]The script doesn't exclude these sounds right now
+[BJE3]To be edited
+[BJE4]Create a Requirements section and Important section. Emphasize good folder and file management and maintenance. Delete files from previous projects before running a new project to tidy the folders. Do not allow files to be names the same thing or they will be overwritten.
+[BE5]I’ve made updates to the script where folders are automatically created if they don’t exist, so I might be able to delete this text now. Should test first.
+[BJE6]Bje to re-write the script to accommodate this so the user does not need to create an empty folder, but the script automatically will if there are no subfolders and move the selection into it.

@@ -1,30 +1,80 @@
-#this script formats multiple Hori-Harm selection tables within subdirectories, saves the selection tables, filters the output by score and random days
 #bje37
 # 1 March 2021
 
-# This script will:
-# - read in all selection tables from HoriHarm detector output (required that they are in site-folders)
-# - restructure those tables
-# - merge the detector tables into site-wise tables
-# - add sound_check info to the selection tables (sound check should have been run BEFORE this step)
-# - add the random days designation to the 3 randomly selected days per week
-# - ignore detections on sound files that were marked with 'y' (bad sound file) or 'e' (bad sound file for elephant analysis) in the sound check excel sheet
-# - save selection tables that are filtered by score and random dates with maximum of 2000 selections per table (in the Packages/elpR\File\Rumble\Final folder)
-# - count the total number of detections per site and day by score 0.2, 0.4, and 0.4 random days and sound file duration (added to the sound check excel sheet as a tab, saved in the Packages/elpR\Files|sound_check folder)
-# - calculates the total number of detections per hour for each sound file
-# - plot the total detections per score of 0.2 and 0.4 rand as .png files (saved in num_events folder)
-# - count the total number of days without detections at 0.2 and 0.4
-# - save a selection table of sound files without detections at score 0.4 for random dates (saved in the Packages/elpR\Fileszero_days_SSTs\rumble folder)
-
 ## TO DO
-# don't sum files that were marked to be excluded?
 # check that all selections have a unique selection ID
 # exclude dates outside of deployment period from selection table. (need to add deployment start and end to sites file (optional))
-# add detector name and version to selection table?
-# allow option for rand 3 days (low priority)
+
+#' @title Rumble Selection Table Restructure
+#' @author Bobbi J. Estabrook <bobbi.estabrook@cornell.edu>
+#'
+#' @description
+#' This function will:
+#' \itemize{
+#'  \item read in all selection tables from elephant rumble detector output in the 'Packages/elpR/File/Rumble/raw' folder (required that they are in site-folders)
+#'  \item restructure those tables by merging, cleaning, and adding new columns
+#'  \item merge the detector tables into site-wise selection tables
+#'  \item add 'sound check' info to the selection tables (the 'sound_check' function should have been run on associated sound files BEFORE this step)
+#'  \item add the random days designation to the 3 randomly selected days per week (user defined by three_rand_days <- "y" or "n")
+#'  \item ignore detections on sound files that were marked with 'y' (bad sound file) in the 'Exclude (y/n)' column of the 'Sound Check' Excel file
+#'  \item if min_23hrs <- "y" then ignore detections on sound files that were marked with 'e' (bad sound file for elephant analysis) in the 'Exclude (y/n)' column of the 'Sound Check' Excel file
+#'  \item if three_rand_days <- "y" then summarize and produce selections tables for the 3 random days per week
+#'  \item save selection tables that are filtered by score per table (in the elpR/File/Rumble/Final folder)
+#'  \item count the total number of detections per site and day by score and sound file duration (added to the 'sound check' Excel sheet as a tab, saved in the elpR/Files/sound_check folder)
+#'  \item calculates the total number of detections per sound file saved as a .txt file in the elpR/File/Num_events folder
+#'  \item plot the total detections per score as .png files (saved in elpR/File/Num_events folder)
+#'  \item count the total number of days without detections
+#'  \item save a selection table of sound files without detections at threshold score (user defined) for random dates (saved in the elpR/Fileszero_days_SSTs/rumble folder)
+#'}
+#' @note
+#' * The user needs to update the fields in the script.
+#' * input detector files require Raven Pro columns:
+#'   \itemize{
+#'   \item Begin File
+#'   \item File Offset (s)
+#'   \item Begin Time (s)
+#'   \item End Time (s)
+#'   \item High Freq (Hz)
+#'   \item Low Freq (Hz)
+#'   \item Score (can be named something else, but must be indicated by user in script)}
+#' The 'sound check' file is required for this function. The name of the file should be unchanged from when it was created. Use the same variable names between the two scripts for each project, deployment, and disk
+#' This script will only generate selection tables and summaries for sites that are included in the corresponding 'sound check' file.
+#' WARNING: New files will overwrite old files with the same name. Be sure to move files of the same name out of the 'Packages/elpR/File/Rumble/Final' folder before running this script if you don't want to overwrite them
+#'
+#' @param HH_selection_tables Do not change this value
+#'
+#' @return Output files
+#' \itemize{
+#'  \item updated sound check file with new tab called Rumble Detector Summaries (/elpR/Files/sound_check)
+#'    \item Duration of good sounds per site
+#'    \item Total detections at lowest score per site
+#'    \item Total detections above score threshold per site
+#'    \item Total detections above score threshold and on random dates per site (will be blank if random dates are not enabled by user)
+#'  \item Raven Pro sound selection tables (/elpR/Files/Selection_Tables/rumble/final) in folders by score
+#'  \item Empty selection tables. These are dummy selections tables that have 1 selection per sound file which did not have a detection (elpR/Files/Empty_Tables/rumble) greater than the initial detector score
+#'  \item Summary of the number of events per sound file (elpR/Files/num_events/rumble)
+#'  \item Plots for the number of detections per day per site by the detector score and the filtered score (elpR/Files/num_events/rumble)
+#'  \item Dummy selection tables with selections on sound files that did not have a detection above the filtered score (elpR/Files/zero_days_SSTs/rumble)
+#'  }
+#'
+#' @importFrom plyr rbind.fill
+#' @importFrom dplyr filter select mutate group_by tally rename %>%
+#' @importFrom ggplot2 ggplot geom_point scale_y_continuous facet_wrap aes
+#' @importFrom bigreadr fread2
+#' @importFrom openxlsx read.xlsx loadWorkbook addWorksheet writeData saveWorkbook removeWorksheet
+#' @importFrom stringr str_extract str_match
+#' @importFrom gsubfn strapplyc
+#' @importFrom lubridate hour
+#' @importFrom filesstrings file.move
+#' @importFrom utils write.table read.table
+#' @importFrom stats aggregate
+#' @importFrom graphics plot
+#'
+#' @export
+# devtools::document()
 
 Rumble_Selection_Table_Restructure <- function (x) {
-  # x <- HH_selection_tables # doesn't work
+  # x <- rumble_selection_tables # doesn't work
 
   # install and load necessary packages
   sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
@@ -71,7 +121,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
 
   #### Cross-reference sound files with known errors (see Sound_Quality_Check r script) ####
   # if (soundcheck_file == "y"){} # impliment option for sound check file
-  sound_check <- read.xlsx(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),
+  sound_check <- openxlsx::read.xlsx(paste("~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),
                            sheet="Sounds",colNames=TRUE,check.names=FALSE,sep.names = " ") # read in the sound_check file that was created in the first step
   sound_check$'Sound Problems'<-paste(sound_check$`File Duration Check`, sound_check$'File Length Check',sound_check$`Sound Gap Check`,sound_check$"SampleRate",
                                       sound_check$"Deployment Notes",sound_check$"Sound Problems", sound_check$`Exclude (y/e)`,sep = "; ") # concatenate the sound problems into one column
@@ -634,5 +684,6 @@ for (h in 1:length(files)){
   }
   delete_all_folders(processed_HH)
 
+  setwd('~/R/Bobbi_Scripts/Packages/elpR')
 }
 

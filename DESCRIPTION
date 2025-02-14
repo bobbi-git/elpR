@@ -1,9 +1,30 @@
 Package: elpR
 Type: Package
-Title: The Elephant Listening Project File Management (Title Case)
+Title: The Elephant Listening Project File Management
 Version: 0.1.0
-Author: Bobbi J. Estabrook
+Authors@R: 
+    person("Bobbi J.", "Estabrook", , "bobbi.estabrook@cornell.edu", role = c("aut", "cre"))
 Maintainer: Bobbi J. Estabrook <bje37@cornell.edu>
-Description: This package works with SwiftOne sound files, Raven selection tables, elephant rumble detecctor output, gunshot detector output. The scripts will check sound file quality, prepapre sounds for analysis, prepare selection tables for analysis
+Description: Tools for processing and analyzing elephant rumble detector output,
+    gunshot detector output, and other detector output in Raven Pro selection tables.
+    Functions include selection table restructuring, sound quality checking, 
+    detector performance evaluation, and detection summaries for acoustic monitoring data.
+Copyright: Copyright (c) 2025, The Elephant Listening Project
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    plyr,
+    dplyr,
+    ggplot2,
+    bigreadr,
+    openxlsx,
+    stringr,
+    gsubfn,
+    lubridate,
+    filesstrings,
+    utils,
+    stats,
+    graphics
