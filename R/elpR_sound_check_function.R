@@ -24,6 +24,7 @@
 #'    \item deployment name (e.g., nn_202302_feb) = deployment_name
 #'    \item deployment number (numeric) = deployment_num
 #'    \item disk ID (name of the disk with your sound files) = disk_ID
+#'    \item directory for where to move bad sound files to = extra_sounds_folder
 #'    \item numeric sample rate (the sample rate of the sound files) = sample_rate
 #'    \item file duration (expected duration of each sound file) = fileDurationMin
 #'    \item sound file extension type (e.g., ".wav", ".aif") = sound_file_ext

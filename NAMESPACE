@@ -2,6 +2,7 @@
 
 export(Rumble_Selection_Table_Restructure)
 export(sound.check)
+export(sound.exclude)
 importFrom(bigreadr,fread2)
 importFrom(dplyr,"%>%")
 importFrom(dplyr,filter)
