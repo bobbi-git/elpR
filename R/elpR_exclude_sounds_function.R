@@ -39,7 +39,7 @@
 #'    \item set have_SwiftFiles to "y" (lower-case) if you have Swift files in the sound folders or to "n" if you do not
 #'    \item set merge_swift_files to "y" if you want the swift files to be merged together into one file (this will not delete the single swift files), or to "n" if not. For this to work, all the swift files must have the same structure (columns names and order)
 #'    }
-#' WARNING: New files will overwrite old files with the same name. Be sure to move files of the same name out of the 'Packages/elpR/File/sound_check' folder before running this script if you don't want to overwrite them
+#' WARNING: New files will overwrite old files with the same name. Be sure to move files of the same name out of the sound folder before running this script if you don't want to overwrite them
 #'
 #' @param sound_path Do not change this value
 #' @param extra_sounds_folder Do not change this value

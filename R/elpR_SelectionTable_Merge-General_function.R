@@ -19,83 +19,83 @@ merge_selection_tables <- function(path, recursive = TRUE) {
     stop("The specified directory does not exist")
   }
 
-  # Function to get all txt files, including those in subfolders
-  get_txt_files <- function(path, recursive = TRUE) {
-    if(recursive) {
-      # Get files from main folder and subfolders
-      files <- list.files(path = path,
-                          pattern = "\\.txt$",
-                          recursive = TRUE,
-                          full.names = TRUE)
-    } else {
-      # Get files only from main folder
-      files <- list.files(path = path,
-                          pattern = "\\.txt$",
-                          recursive = FALSE,
-                          full.names = TRUE)
-    }
-    return(files)
-  }
-
-  # Get list of all .txt files
-  file_names <- get_txt_files(path, recursive)
+  # Get all txt files
+  file_names <- list.files(path = path,
+                           pattern = "\\.txt$",
+                           recursive = recursive,
+                           full.names = TRUE)
 
   if(length(file_names) == 0) {
     stop("No .txt files found in specified location")
   }
 
-  # Define column types
-  numeric_cols <- c("Begin Time (s)", "End Time (s)", "File Offset (s)",
-                    "Low Freq (Hz)", "High Freq (Hz)")
-  character_cols <- c("Begin Clock Time", "Begin Date", "Begin Hour",
-                      "Begin File", "Notes", "Class", "View", "Channel")
+  # Define priority order for columns
+  priority_cols <- c(
+    "Selection",
+    "Original Selection ID",
+    "Source Selection Table",
+    "Begin Time (s)",
+    "End Time (s)",
+    "Low Freq (Hz)",
+    "High Freq (Hz)",
+    "File Offset (s)",
+    "Begin Path",
+    "Begin File"
+  )
 
-  # Create empty list to store all dataframes
+  # Create empty list for tables
   all_tables <- list()
   valid_tables <- 0
 
-  # Read and process each file
+  # Process each file
   for (i in 1:length(file_names)) {
-    # Read each table with careful handling of quotes and special characters
     table <- try(read.table(file_names[i],
-                            header=TRUE,
-                            sep="\t",
-                            check.names=FALSE,
-                            quote="",
-                            fill=TRUE,
-                            stringsAsFactors=FALSE))
+                            header = TRUE,
+                            sep = "\t",
+                            check.names = FALSE,
+                            quote = "",
+                            fill = TRUE,
+                            stringsAsFactors = FALSE))
 
-    # Only process if table has rows
     if (!inherits(table, "try-error") && nrow(table) > 0) {
       valid_tables <- valid_tables + 1
 
-      # Convert numeric columns
-      for(col in numeric_cols) {
-        if(col %in% names(table)) {
+      # Save original Selection number
+      if("Selection" %in% names(table)) {
+        table$`Original Selection ID` <- table$Selection
+      }
+
+      # Add original filename
+      table$`Source Selection Table` <- basename(file_names[i])
+
+      # Convert known numeric columns
+      numeric_cols <- c("Begin Time (s)", "End Time (s)",
+                        "Low Freq (Hz)", "High Freq (Hz)",
+                        "File Offset (s)")
+
+      # Convert columns appropriately
+      for(col in names(table)) {
+        if(col %in% numeric_cols) {
           table[[col]] <- as.numeric(as.character(table[[col]]))
-        }
-      }
-
-      # Convert and clean character columns
-      for(col in character_cols) {
-        if(col %in% names(table)) {
+        } else {
           table[[col]] <- as.character(table[[col]])
-          table[[col]] <- gsub("\r|\n|\t", " ", table[[col]])
         }
       }
-
-      # Add filename as a column (use only the file name, not full path)
-      table$Selection_Table <- basename(file_names[i])
 
       # Extract filename from Begin Path
       if("Begin Path" %in% names(table)) {
         table$`Begin File` <- basename(as.character(table$"Begin Path"))
-      } else {
-        cat("\nNo Begin Path column found - skipping filename extraction\n")
       }
 
+      # Sort columns: priority columns first, then remaining columns alphabetically
+      other_cols <- setdiff(names(table), priority_cols)
+      sorted_other_cols <- sort(other_cols)
+      all_cols <- c(
+        priority_cols[priority_cols %in% names(table)],
+        sorted_other_cols
+      )
 
-      # Store in list
+      table <- table[, all_cols]
       all_tables[[valid_tables]] <- table
       cat("File:", basename(file_names[i]), "- rows:", nrow(table), "\n")
     }
@@ -105,55 +105,59 @@ merge_selection_tables <- function(path, recursive = TRUE) {
     stop("No valid tables found to process")
   }
 
-  # Combine all tables
+  # Combine tables
   merged_df <- bind_rows(all_tables)
 
-  # Check for duplicates based on key columns
-  duplicate_check <- merged_df %>%
-    group_by(`Begin File`, `File Offset (s)`,`End Time (s)`, `High Freq (Hz)`,`Low Freq (Hz)`) %>%
-    filter(n() > 1)
+  # Check for duplicates using base R approach
+  duplicate_check <- merged_df[duplicated(merged_df[, c("Begin File", "File Offset (s)",
+                                                        "End Time (s)", "High Freq (Hz)",
+                                                        "Low Freq (Hz)")]) |
+                                 duplicated(merged_df[, c("Begin File", "File Offset (s)",
+                                                          "End Time (s)", "High Freq (Hz)",
+                                                          "Low Freq (Hz)")], fromLast = TRUE), ]
 
   cat("\nDuplicate entries found:", nrow(duplicate_check), "\n")
 
+  # Remove duplicates if found
   if(nrow(duplicate_check) > 0) {
     cat("\nSample of duplicates:\n")
     print(head(duplicate_check))
 
-    # Remove duplicates
     merged_df <- merged_df %>%
-      distinct(`Begin File`, `File Offset (s)`,`End Time (s)`, `High Freq (Hz)`,`Low Freq (Hz)`, .keep_all = TRUE)
+      distinct(`Begin File`, `File Offset (s)`, `End Time (s)`,
+               `High Freq (Hz)`, `Low Freq (Hz)`, .keep_all = TRUE)
   }
 
   # Sort by Begin File and File Offset
   merged_df <- merged_df[order(merged_df$"Begin File", merged_df$"File Offset (s)"),]
 
-  # Add new Selection column
+  # Add new Selection numbers
   merged_df$Selection <- 1:nrow(merged_df)
 
-  # Move Selection to first column
-  merged_df <- merged_df %>% select(Selection, everything())
+  # Move Selection and Original Selection ID to first columns
+  merged_df <- merged_df %>%
+    select(Selection, `Original Selection ID`, `Source Selection Table`, everything())
 
-  # Create output filename with timestamp
+  # Create output filename
   output_file <- file.path(path,
                            paste0("combined_selection_tables_",
                                   format(Sys.time(), "%Y%m%d_%H%M%S"),
                                   ".txt"))
 
-  # Write the combined table
+  # Write output
   write.table(merged_df,
               output_file,
-              sep="\t",
-              row.names=FALSE,
-              quote=FALSE,
-              fileEncoding="UTF-8",
-              na="")
+              sep = "\t",
+              row.names = FALSE,
+              quote = FALSE,
+              fileEncoding = "UTF-8",
+              na = "")
 
   # Print summary
   cat("\nOriginal number of rows:", nrow(bind_rows(all_tables)), "\n")
   cat("Final number of rows after removing duplicates:", nrow(merged_df), "\n")
   cat("Number of columns:", ncol(merged_df), "\n")
-  cat("\nOutput file saved as:", output_file, "\n")
+  cat("\nOutput file saved as:", basename(output_file), "\n")
 
+  return(merged_df)
 }
-
-

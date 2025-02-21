@@ -2,8 +2,9 @@
 # bje37@cornell.edu
 
 library(warbleR)
-setwd("L:/ELP/Projects/Nouabale/nn_analyses/Cluster_SECR/PNNN_Dep17/Single-Channnel_8kHz_01hr/nn09c00")
-sounds <- "L:/ELP/Projects/Nouabale/nn_analyses/Cluster_SECR/PNNN_Dep17/Single-Channnel_8kHz_01hr/1hr"
+setwd("L:/ELP/Projects/Nouabale/nn_scr/Cluster_SECR/PNNN_Dep18/Sounds/PNNN_Dep18_8kHz_temp/nn09c6_202311_nov") # input directory
+sounds <- "L:/ELP/Projects/Nouabale/nn_scr/Cluster_SECR/PNNN_Dep18/Sounds/PNNN_Dep18_8kHz_temp/nn09c6_202311_nov" # input directory
+# note that new sound files will be created in the input folder with sequential numbers added as a suffix for each file that's split.
 
 # list_txt = list.files(path="L:/ELP/Projects/Nouabale/nn_analyses/Cluster_SECR/PNNN_Dep17/Single-Channnel_8kHz_01hr/", full.names = TRUE,pattern="*.txt",recursive = TRUE) #make a list of all the files within the subfolder j
 # all_txt_df <- lapply(list_txt, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE)})  # Read the files in, assuming tab separator
@@ -13,4 +14,4 @@ sounds <- "L:/ELP/Projects/Nouabale/nn_analyses/Cluster_SECR/PNNN_Dep17/Single-C
 # merge_df$start <- merge_df$`Begin Time (s)`
 # merge_df$end <- merge_df$`End Time (s)`
 
-split_sound_files(path = sounds,sgmt.dur = 3600,parallel = 6,pb = T)
+split_sound_files(path = sounds,sgmt.dur = 3600,parallel = 12,pb = T)
