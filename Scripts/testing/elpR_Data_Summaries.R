@@ -33,19 +33,19 @@ rm(list = ls())
 # library(lubridate)
 # library(readxl)
 
-output <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/merged_data/test" # where you want the merged data to be saved to
-sound_checks <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/sound_checks" # where all the sound check files are located
-ele_tables<-"L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/ele" # where all the elephant selection tables are located
-zero_txt <- "L:/ELP/Projects/Nouabale/nn_grid/nn_analyses/base tables/HH_zero_detection_days" # where the zero-day (selection tables with dummy events on dates without rumbles) tables are located
+output <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/ele" # where you want the merged data to be saved to
+sound_checks <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/sound_checks" # where all the sound check files are located
+ele_tables<-"L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/ele" # where all the elephant selection tables are located
+zero_txt <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/HH_zero_detection_days" # where the zero-day (selection tables with dummy events on dates without rumbles) tables are located
 # gunshot_tables <-
 
-project_name <- "PNNN" # name of project (e.g., "PNNN", "DzangaBai", etc.)
-deployment_num <- "01-18" # deployment(s) number (e.g., "01-12", "04")
+project_name <- "dz_202305_may" # name of project (e.g., "PNNN", "DzangaBai", etc.)
+deployment_num <- "01" # deployment(s) number (e.g., "01-12", "04")
 detector_name <- "HHv6" # # name of the detector used for these data. For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1. For other, type the name. Do not include spaces or special characters
 
-fileDurationMin <- 1440 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
+fileDurationMin <- 60 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
 
-site_lat_long <- read.table("C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/sites/PNNN_Sites_latLongStrata.txt",
+site_lat_long <- read.table("C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/sites/DSPA_DZ_Sites.txt",
                             header = T, sep ="\t", check.names=FALSE,quote = "\"")# load general table for sites
 
 rand_dates_needed <- "y" # type "y" if so, type "n" of not

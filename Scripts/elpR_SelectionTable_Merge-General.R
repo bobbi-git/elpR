@@ -11,6 +11,7 @@
 #        End Time (s), High Freq (s), Low Freq (s), File Offset (s), Begin Path
 # - output file is .txt selection table
 
+library(dplyr)
 
 path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp" # directory where selection tables are saved (can have subfolders)
 # extract begin clock time from file name?

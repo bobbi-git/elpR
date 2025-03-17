@@ -41,10 +41,18 @@ proj_dep_name <-paste(project_name,"_dep",deployment_num,"_",detector_name,sep="
 ##### Sound Check Files #####
 # Should read in excel tables, not .txt files since those aren't frequently updated
 # add if statement here if user has sound check...
-sound_check_list <- list.files(path = sound_checks,recursive=T,full.names=TRUE, pattern = "*.txt") # list all the selection tables in the ele_tables folder
-sound_check_list <- lapply(sound_check_list, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE,quote = "\"",comment.char = "")})  # Read the files in, assuming tab separator
-sound_check_list <- rapply(sound_check_list, as.character, how = "replace") #make all columns character types before merging
-sound_check_merge_df <- dplyr::bind_rows(sound_check_list) # merge all sound check files together
+sound_check_list <- list.files(path = sound_checks,
+                               recursive=T,
+                               full.names=TRUE,
+                               pattern = "*.xlsx") # list all the selection tables in the ele_tables folder
+#sound_check_list <- lapply(sound_check_list, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE,quote = "\"",comment.char = "")})  # Read the files in, assuming tab separator
+#sound_check_list <- rapply(sound_check_list, as.character, how = "replace") #make all columns character types before merging
+#sound_check_merge_df <- do.call("rbind", lapply(sound_check_list_df, as.data.frame)) # Combine them (the events cross over between sites and cuts off the last site - use the rbind.fill function)
+# sum(sapply(all_txt_df, nrow))
+sound_check_list_df <- lapply(sound_check_list, read_xlsx,
+                              sheet = "Sounds",
+                              col_names = TRUE)  # Read the files in
+sound_check_merge_df <- dplyr::bind_rows(sound_check_list_df) # merge all sound check files together
 cols.nums <- c("Duration Hours",'File Duration (s)',"SampleRate")
 sound_check_merge_df[cols.nums] <- sapply(sound_check_merge_df[cols.nums],as.numeric) # set specific columns as numeric
 sound_check_merge_df$`File Start DateTime` <- as.POSIXct(str_extract(sound_check_merge_df$`Current File Name`,"\\d{8}.\\d{6}"),format='%Y%m%d_%H%M%S',origin = "1970-01-01",tz="Africa/Brazzaville") # convert the data and time charaters to real date and time with the correct time zone
@@ -386,8 +394,23 @@ ele_hr_plot<- ggplot(ele_hrly, aes(x = Hour, y = `Sum Rumbles`)) +
                        y = "Total Rumbles (+/- SE)",
                        x = "Hour")
 print(ele_hr_plot)
-ggsave(paste(output,"/",proj_dep_name,"_ele_hr_plot.png",sep=""), ele_hr_plot, width = 10, height = 6, dpi = 300)
-ggsave(paste(output,"/",proj_dep_name,"_ele_hr_plot.eps",sep=""), ele_hr_plot, width = 10, height = 6, device = "eps")
+ggsave(paste(output,"/",
+             proj_dep_name,
+             "_ele_hr_plot.png",
+             sep=""),
+       ele_hr_plot,
+       width = 10,
+       height = 6,
+       dpi = 300)
+ggsave(paste(output,
+             "/",
+             proj_dep_name,
+             "_ele_hr_plot.eps",
+             sep=""),
+       ele_hr_plot,
+       width = 10,
+       height = 6,
+       device = "eps")
 
 #### DAILY SUMMARIES ####
 # summarize daily rumbles from hourly table
@@ -439,7 +462,9 @@ write.table(daily_site_summary,
 
 # Add all dates to the daily summary dataframe and fill them with NA so they have gaps in time in the plot
 # create a complete sequence of dates
-date_range <- seq(min(daily_site_summary$Date), max(daily_site_summary$Date), by="day")
+date_range <- seq(min(daily_site_summary$Date),
+                  max(daily_site_summary$Date),
+                  by="day")
 # Create a data frame with all combinations of dates and strata
 complete_dates <- expand.grid(
   Date = date_range,
