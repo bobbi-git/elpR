@@ -23,7 +23,7 @@ Output files
 This function will move sound files that are marked as 'bad' sounds in the sound check spreadsheet to another folder.
 The function will:
 \itemize{
-\item read the excel table produced by the sound_check script (the sound_check file must exist for this function to work and be in the following directory: elpR/Files/sound_check)
+\item read the "sounds" worksheet in the sound check excel file that is produced by the sound_check script and function. The sound_check file must exist for this function to work and be in the following directory: elpR/Files/sound_check
 \item move all sounds marked with a 'y' in the "Exclude (y)" column of the sound_check.xlsx file to the excluded sounds folder defined in the script
 \item Sound files to exclude include files with less than 1 min of recording and bad sound files (automatically marked as 'y" by the sound.check function). If the user manually marked bad sound files or sounds to exclude with a 'y' in the Exclude (y/n) column, it will remove those sound files.
 \item For elephant rumbles, excluded sounds are those with less than 22.95 hours or more than 24 hours (automatically marked by the sound.check function)
@@ -47,7 +47,7 @@ The user needs to update the fields in the script:
 \item set have_SwiftFiles to "y" (lower-case) if you have Swift files in the sound folders or to "n" if you do not
 \item set merge_swift_files to "y" if you want the swift files to be merged together into one file (this will not delete the single swift files), or to "n" if not. For this to work, all the swift files must have the same structure (columns names and order)
 }
-WARNING: New files will overwrite old files with the same name. Be sure to move files of the same name out of the 'Packages/elpR/File/sound_check' folder before running this script if you don't want to overwrite them
+WARNING: New files will overwrite old files with the same name. Be sure to move files of the same name out of the sound folder before running this script if you don't want to overwrite them
 }
 \author{
 Bobbi J. Estabrook \href{mailto:bobbi.estabrook@cornell.edu}{bobbi.estabrook@cornell.edu}

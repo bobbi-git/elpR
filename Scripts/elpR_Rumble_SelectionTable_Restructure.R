@@ -25,7 +25,7 @@ rm(list = ls())
   Filter_ScoreThreshold <- 0.4 # The score that the final processed tables should be filtered by (0.4 for Hori-harm rumbles)
 
 #4) Run line below to restructure the gunshot detector selection tables
-   Rumble_Selection_Table_Restructure(rumble_selection_tables)
+  Rumble_Selection_Table_Restructure(rumble_selection_tables)
 
   # After all the files are complete:
   # move the files (see list below) to the appropriate folders on the server, and delete the files from the raw and final

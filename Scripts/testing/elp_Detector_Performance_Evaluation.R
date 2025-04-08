@@ -19,6 +19,7 @@
 library(dplyr)
 library(ggplot2)
 library(PRROC)  # For ROC and PR curves
+library(chron)
 
 # truth tables and test tables
 truth <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/detector_validation/truth_tables" # path to the manually annotated selection tables
@@ -30,8 +31,10 @@ det_tables <-  list.files(path = detector,recursive=T,full.names=TRUE, pattern =
 det_tables <- lapply(det_tables, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE,quote = "\"",comment.char = "")})
 
 schedule_path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/detector_validation/schedule.txt" # schedule file
-score <- # name of your score column
-thresh_bin <- 0.1 # bins of scores to report
+score <- "Score" # name of your score column
+thresh_bin <- 0.05 # bins of scores to report
+
+output <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/detector_validation/output"
 
 #### AI Code ####
 

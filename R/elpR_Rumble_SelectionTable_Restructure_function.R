@@ -4,6 +4,7 @@
 ## TO DO
 # check that all selections have a unique selection ID
 # exclude dates outside of deployment period from selection table. (need to add deployment start and end to sites file (optional))
+# for FruitPunch detections - automatically annotate overlapping detections with "Duplicate" in Notes. Delete?
 
 #' @title Rumble Selection Table Restructure
 #' @author Bobbi J. Estabrook <bobbi.estabrook@cornell.edu>
@@ -25,6 +26,7 @@
 #'  \item plot the total detections per score as .png files (saved in elpR/File/Num_events folder)
 #'  \item count the total number of days without detections
 #'  \item save a selection table of sound files without detections at threshold score (user defined) for random dates (saved in the elpR/Fileszero_days_SSTs/rumble folder)
+#'  \item if the detector specified is "FPv1", the script will reset the minimum frequency of the detections to 10 Hz, because the FruitPunch detector (FPv1) generates minimum frequencies that are higher than the detected signal.
 #'}
 #' @note
 #' * The user needs to update the fields in the script.
@@ -71,7 +73,14 @@
 #' @importFrom graphics plot
 #'
 #' @export
-# devtools::document()
+
+# every time the description is updated, run the code below.
+# detach("package:elpR", unload = TRUE)  # If it's loaded
+# remove.packages("elpR")
+# .rs.restartR()   # Restart R session
+# devtools::document() # enable this ever time you make description changes.
+# then build/install package
+
 
 Rumble_Selection_Table_Restructure <- function (x) {
   # x <- rumble_selection_tables # doesn't work

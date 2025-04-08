@@ -42,6 +42,7 @@ This function will:
 \item plot the total detections per score as .png files (saved in elpR/File/Num_events folder)
 \item count the total number of days without detections
 \item save a selection table of sound files without detections at threshold score (user defined) for random dates (saved in the elpR/Fileszero_days_SSTs/rumble folder)
+\item if the detector specified is "FPv1", the script will reset the minimum frequency of the detections to 10 Hz, because the FruitPunch detector (FPv1) generates minimum frequencies that are higher than the detected signal.
 }
 }
 \note{
