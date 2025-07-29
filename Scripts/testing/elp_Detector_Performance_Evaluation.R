@@ -13,7 +13,15 @@
 # - selection tables for detector
 # - all selection tables require Begin Time (s), End Time (s), Begin File, File Offset (s)
 # - the detector table requires Score. If this is called something else, you can rename it in the code below.
-# - a Schedule file = a .txt file with Begin Date (m/d/y), Begin Time (hh:mm:ss), End Date (m/d/y), End Time (hh:mm:ss)
+# - a Schedule file = a .txt file with Begin Date (m/d/y), Begin Time (hh:mm:ss), End Date (m/d/y), End Time (hh:mm:ss) in columns
+
+### TO DO
+# - allow for classification-specific performance metrics
+# - allow for SNR-based performance metrics
+# - test schedule file
+# - allow for specific site/channel
+# - report schedule used and time periods used
+# - report overlap used and threshold bin used
 
 # load all necessary packages
 library(dplyr)
@@ -32,13 +40,14 @@ det_tables <- lapply(det_tables, function(x) {read.table(file = x, header = T, s
 
 schedule_path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/detector_validation/schedule.txt" # schedule file
 score <- "Score" # name of your score column
-thresh_bin <- 0.05 # bins of scores to report
+min_threshold = 0.2
+thresh_bin <- 0.1 # bins of scores to report
 
 output <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/detector_validation/output"
 
-#### AI Code ####
+#### Code ####
 
-# Function to check required columns in tables
+# check required columns in tables
 check_required_columns <- function(table_list, list_name = "") {
   required_cols <- c("Begin File", "File Offset (s)", "Begin Time (s)", "End Time (s)")
 
@@ -77,7 +86,8 @@ check_required_columns <- function(table_list, list_name = "") {
 print(check_required_columns(truth_tables, "truth"))
 print(check_required_columns(det_tables, "detector"))
 
-# standardize the tables
+
+# function to standardize the tables
 standardize_table <- function(df, is_detector = TRUE) {
   required_cols <- c("Begin File", "File Offset (s)", "Begin Time (s)", "End Time (s)")
 
@@ -118,7 +128,8 @@ standardize_table <- function(df, is_detector = TRUE) {
   return(std_df)
 }
 
-# overlap with percentage
+
+# enable temporal overlap by percentage
 is_overlap <- function(det, truth, min_overlap_percent = 0) {
   # First check file names match
   if(is.na(det$File_Name) || det$File_Name == "NA" ||
@@ -146,17 +157,17 @@ is_overlap <- function(det, truth, min_overlap_percent = 0) {
   det_duration <- det$Abs_End - det$Abs_Start
   truth_duration <- truth$Abs_End - truth$Abs_Start
 
-  # Calculate overlap percentages relative to both events
+  # Calculate time overlap percentages relative to both events
   det_overlap_percent <- (overlap_duration / det_duration) * 100
   truth_overlap_percent <- (overlap_duration / truth_duration) * 100
 
-  # Return TRUE if either overlap percentage meets the minimum requirement
+  # Return TRUE if either temporal overlap percentage meets the minimum requirement
   return(det_overlap_percent >= min_overlap_percent ||
            truth_overlap_percent >= min_overlap_percent)
 }
 
 
-# Function to combine multiple tables
+# combine multiple tables
 combine_tables <- function(table_list, is_detector = TRUE) {
   if(length(table_list) == 0) {
     stop("Empty table list provided")
@@ -190,10 +201,35 @@ combine_tables <- function(table_list, is_detector = TRUE) {
 }
 
 
-# Main evaluation function
+# check if events fall withint schedule file
+is_within_schedule <- function(event, schedule) {
+  # Convert event times to POSIXct
+  event_file <- event$File_Name
+  # Extract date from filename (assuming format contains date)
+  event_date <- sub(".*_(\\d{8})_.*", "\\1", event_file)
+  event_date <- as.Date(event_date, format="%Y%m%d")
+
+  event_start <- as.POSIXct(paste(event_date,
+                                  format(as.POSIXct(event$File_Offset, origin="1970-01-01"), "%H:%M:%S")))
+  event_end <- as.POSIXct(paste(event_date,
+                                format(as.POSIXct(event$File_Offset + event$Duration, origin="1970-01-01"), "%H:%M:%S")))
+
+  # Check if event falls within any scheduled period
+  for(i in 1:nrow(schedule)) {
+    if(event_start >= schedule$Begin_DateTime[i] &&
+       event_end <= schedule$End_DateTime[i] &&
+       grepl(schedule$Channel[i], event_file)) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
+
+# performance evaluation function
 evaluate_detections <- function(truth_tables, det_tables,
                                 schedule_path,
-                                score_thresholds = seq(0, 1, 0.1),
+                                score_thresholds = seq(min_threshold, 0.999, thresh_bin),
                                 min_overlap_percent = 0,
                                 output_dir = NULL) {
   # Create output directory if specified
@@ -220,7 +256,7 @@ evaluate_detections <- function(truth_tables, det_tables,
     stop("Error reading schedule file: ", e$message)
   })
 
-  # Extract just the time portion from the Begin/End Time fields
+  # Extract just the time portion from the Begin/End Time fields (NEED TO BE SPECIFIC TO SITE ID/CHANNEL)
   schedule$`Begin Time` <- chron(times = schedule$`Begin Time`)
   schedule$`End Time` <- chron(times = schedule$`End Time`)
 
@@ -230,7 +266,7 @@ evaluate_detections <- function(truth_tables, det_tables,
   schedule$End_DateTime <- as.POSIXct(paste(schedule$`End Date`, schedule$`End Time`),
                                       format="%m/%d/%Y %H:%M:%S")
 
-  # Diagnostic messages
+  # Diagnostic messages for schedule file
   message("Schedule periods:")
   message("Start: ", schedule$Begin_DateTime)
   message("End: ", schedule$End_DateTime)
@@ -243,8 +279,8 @@ evaluate_detections <- function(truth_tables, det_tables,
   message("Total monitoring hours: ", round(total_hours, 2))
   message("\nSchedule summary:")
   message("Number of schedule periods: ", nrow(schedule))
-  message("First period: ", min(schedule$Begin_DateTime), " to ", min(schedule$End_DateTime))
-  message("Last period: ", max(schedule$Begin_DateTime), " to ", max(schedule$End_DateTime))
+  message("First period: ", min(schedule$Begin_DateTime), " to ", min(schedule$End_DateTime)) # need to make these more clear
+  message("Last period: ", max(schedule$Begin_DateTime), " to ", max(schedule$End_DateTime)) # need to make these more clear
   message("Total hours calculated: ", round(as.numeric(total_hours), 2))
 
   if(as.numeric(total_hours) <= 0) {
@@ -254,13 +290,20 @@ evaluate_detections <- function(truth_tables, det_tables,
   # Combine and standardize tables for evaluation
   truth_combined <- combine_tables(truth_tables, is_detector = FALSE)
   detector_combined <- combine_tables(det_tables, is_detector = TRUE)
-
+  # crop the table to events that only fall within schedule file
+  truth_combined <- truth_combined[sapply(1:nrow(truth_combined),
+                                          function(i) is_within_schedule(truth_combined[i,], schedule)), ]
+  detector_combined <- detector_combined[sapply(1:nrow(detector_combined),
+                                                function(i) is_within_schedule(detector_combined[i,], schedule)), ]
+  message("After schedule filtering:")
+  message("Truth events remaining: ", nrow(truth_combined))
+  message("Detector events remaining: ", nrow(detector_combined))
   results <- list()
 
   for(threshold in score_thresholds) {
     message("\nEvaluating threshold: ", threshold)
 
-    # Create deep copies of original tables for this threshold
+    # Create copies of original tables for threshold bins
     current_truth_tables <- lapply(truth_tables, function(x) {
       df <- x
       df$Classification <- "FN"  # Default all truth events to False Negative
@@ -488,22 +531,33 @@ evaluate_detections <- function(truth_tables, det_tables,
 
 
 
-### USER ###
-
+### USER TO RUN ###
 # results
-# With default >0% overlap requirement
-results <- evaluate_detections(truth_tables, det_tables, schedule_path = schedule_path, output_dir = output)
-print(results$metrics)
-print(results$summary)
-print(results$pr_plot)
-print(results$fphr_plot)
 
-# With modified % overlap requirement
-results_percentage <- evaluate_detections(truth_tables, det_tables, min_overlap_percent = 50)
+# # With default >0% overlap requirement
+# results <- evaluate_detections(truth_tables, det_tables, schedule_path = schedule_path, output_dir = output)
+# print(results$metrics)
+# print(results$summary)
+# print(results$pr_plot)
+# print(results$fphr_plot)
+
+# With modified % time overlap requirement
+results_percentage <- evaluate_detections(truth_tables,
+                                          det_tables,
+                                          min_overlap_percent = 50,
+                                          schedule_path = schedule_path,
+                                          output_dir = output)
 # View results
-print(results_percentage$metrics)
 print(results_percentage$summary)
 print(results_percentage$pr_plot)
-print(results_percentage$roc_plot)
+print(results_percentage$fphr_plot)
+write.table(results_percentage$summary,
+            file=paste(output,"/","detPerf_",format(Sys.time(),"%Y%m%d-%H%M%S"),'.txt',sep=""),
+            sep='\t',
+            na="",
+            col.names=TRUE,
+            row.names=FALSE,
+            quote=FALSE,
+            append=FALSE)
 
 

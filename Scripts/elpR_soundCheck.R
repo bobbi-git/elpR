@@ -8,15 +8,15 @@
 rm(list = ls())
 
 # Set fields
-sound_path <- "F:/SPAC_DSPA_dz_202311_nov_dep03/dz_202311_nov_dep03_sounds" # choose top folder path to sound files
-deployment_name <- "dz_202401_jan" # official name of the deployment
-deployment_num <- "03" # update with current deployment number
+sound_path <- "L:/ELP/Software_&_Programs/R-Scripts/elpR/Example_Files/sounds" # choose top folder path to sound files
+deployment_name <- "nn_202311_nov" # official name of the deployment
+deployment_num <- "01" # update with current deployment number
 disk_ID <- "S330A" # name of the disk where the sound files are stored (alphanumeric)
-sample_rate <- 32000 # sample rate in Hz
+sample_rate <- 8000 # sample rate in Hz
 fileDurationMin <- 60 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
 sound_file_ext <- ".wav" # the extension of the sound file (e.g., ".wav",".flac", or ".aiff")
-sites <- "DSPA_DZ_Sites.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
-extra_sounds_folder <-"H:/Dep03_8khz_7sites_extras" # choose a folder to store the extra sound files to.
+sites <- "PNNN_Sites_latlongStrata.txt" # Name of the text file in the 'sites' folder that has a list of the sites for this project, include file type extension in name (e.g., 'txt)
+extra_sounds_folder <-"L:/ELP/Software_&_Programs/R-Scripts/elpR/Example_Files/delete" # choose a folder to store the extra sound files to.
 
 
 #### 1) SOUND CHECK ####

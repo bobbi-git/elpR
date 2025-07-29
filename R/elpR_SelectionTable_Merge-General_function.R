@@ -11,9 +11,47 @@
 #        End Time (s), High Freq (s), Low Freq (s), File Offset (s), Begin Path
 # - output file is .txt selection table
 
+#' @name merge_selection_tables
+#' @title Merge Selection Tables
+#' @description Merge selection tables together. They can be in sub-folders or all in one folder.
+#' @param path Character string specifying the directory containing selection table files
+#' @param recursive Logical; if TRUE, searches for files recursively in subdirectories
+#' @return A data frame containing the merged selection tables with standardized columns:
+#' \itemize{
+#'   \item Selection - New sequential selection numbers
+#'   \item Original Selection ID - Original selection numbers from source files
+#'   \item Source Selection Table - Name of the original file
+#'   \item Begin Time (s) - Start time in seconds
+#'   \item End Time (s) - End time in seconds
+#'   \item Low Freq (Hz) - Lower frequency bound
+#'   \item High Freq (Hz) - Upper frequency bound
+#'   \item File Offset (s) - Time offset in source file
+#'   \item Begin Path - Original file path
+#'   \item Begin File - Filename from Begin Path
+#'   \item Begin Clock Time - Calculated datetime of the selection
+#' }
+#' @details
+#' The function performs the following operations:
+#' \itemize{
+#'   \item Reads all .txt files in the specified directory
+#'   \item Preserves original selection IDs
+#'   \item Removes duplicate entries
+#'   \item Standardizes column formats
+#'   \item Adds source file information
+#'   \item Calculates clock times using selection_datetime function
+#'   \item Creates a new output file with timestamp in name
+#' }
+#' @import dplyr
+#' @export
+#' @importFrom dplyr bind_rows distinct select everything
+#' @seealso \code{\link{selection_datetime}} for datetime calculations
+#' @note The function expects selection table files in tab-delimited format
 
 
 merge_selection_tables <- function(path, recursive = TRUE) {
+  library(dplyr)
+  #library(lubridate)
+
   # Check if path exists
   if (!dir.exists(path)) {
     stop("The specified directory does not exist")
@@ -144,6 +182,13 @@ merge_selection_tables <- function(path, recursive = TRUE) {
                                   format(Sys.time(), "%Y%m%d_%H%M%S"),
                                   ".txt"))
 
+  # add Begin Clock Time column if it doesn't exist (test)
+  merged_df$`Begin Clock Time` <- mapply(selection_datetime,
+                                     merged_df$`Begin File`,  # or whatever column contains your filenames
+                                     merged_df$`File Offset (s)`)
+
+  merged_df$`Begin Clock Time` <- format(merged_df$event_datetime, "%Y-%m-%d %H:%M:%S")
+
   # Write output
   write.table(merged_df,
               output_file,
@@ -161,3 +206,7 @@ merge_selection_tables <- function(path, recursive = TRUE) {
 
   return(merged_df)
 }
+
+
+## TO DO
+# - add begin clock time if it doesn't exist

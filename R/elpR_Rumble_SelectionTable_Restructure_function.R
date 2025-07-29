@@ -83,7 +83,6 @@
 
 
 Rumble_Selection_Table_Restructure <- function (x) {
-  # x <- rumble_selection_tables # doesn't work
 
   # install and load necessary packages
   sel_table_struct <- c("plyr","dplyr","ggplot2","bigreadr","openxlsx","stringr","gsubfn","lubridate","filesstrings")
@@ -144,7 +143,12 @@ Rumble_Selection_Table_Restructure <- function (x) {
   # the cross reference will occur in the next step (4)
 
   # Identify empty selection tab
-  file_names <-dir(path=raw_selection_tables,all.files=TRUE,include.dirs=TRUE,recursive = TRUE, pattern=".txt") #index all the files
+  file_names <-dir(path=raw_selection_tables,
+                   all.files=TRUE,
+                   include.dirs=TRUE,
+                   recursive = TRUE,
+                   pattern=".txt",
+                   full.names=TRUE) #index all the files
   file_size <-file_names[sapply(file_names, file.size) > 200] # index only files greater than 200 bytes since those <200 bytes are blank selection tables (the for loop code won't run on empty selection tables
 
   # Record empty selection tables (those with less than 200 bytes) in a .txt file
@@ -189,21 +193,45 @@ Rumble_Selection_Table_Restructure <- function (x) {
     file_small$`Begin Hour` <- ""
     file_small$"File Start Date" <- file_small$'Begin Date'
 
-    write.table(file_small, file=paste('~/R/Bobbi_Scripts/Packages/elpR/Files/Empty_Tables/rumble/',standard_name_disk,"_Empty_Tables_",
-                                       Detector,"_p",sub("\\d.","",Detector_ScoreThreshold),'.txt',sep=""),
-                sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE) #save a .csv listing the files with no detections
+    write.table(file_small, file=paste('~/R/Bobbi_Scripts/Packages/elpR/Files/Empty_Tables/rumble/',
+                                       standard_name_disk,
+                                       "_Empty_Tables_",
+                                       Detector,
+                                       "_p",
+                                       sub("\\d.",
+                                           "",
+                                           Detector_ScoreThreshold),
+                                       '.txt',
+                                       sep=""),
+                sep='\t',na="",
+                col.names=TRUE,
+                row.names=FALSE,
+                quote=FALSE,
+                append=FALSE) #save a .csv listing the files with no detections
   }
 
 ######### FORMAT Detector SELECTION TABLES ####
   for (i in 1:length(file_size)){
-      elp_data<-read.table(file_size[i],header=TRUE,sep="\t", check.names=FALSE,quote="\"") #read each table from the 200+ byte list separately
+      elp_data<-read.table(file_size[i],
+                           header=TRUE,
+                           sep="\t",
+                           check.names=FALSE,
+                           quote="\"") #read each table from the 200+ byte list separately
       elp_new<-as.data.frame.matrix(elp_data) #save each individual selection table as a data frame
       elp_new$`Begin File` <- basename(elp_new$`Begin Path`) # str_match(elp_new$`Begin Path`,"nn\\d{2}(.*?).wav")[,1]
       elp_new$`File Start DateTime` <- str_extract(elp_new$`Begin File`,"\\d{8}.\\d{6}") #  file start date and time from file name (_YYYYMMDD_HHMMSS)
-      elp_new$`File Start DateTime` <- as.POSIXct(elp_new$`File Start DateTime`,format='%Y%m%d_%H%M%S',origin = "1970-01-01",tz="Africa/Brazzaville") #tz = "UTC"
-      elp_new$`File Start Date`<-format(as.Date(str_extract(elp_new$'Begin File' ,"\\d{8}.\\d{6}"),"%Y%m%d"),"%m/%d/%Y") # use this for date if you want the file date rather than Raven Begin Date
+      elp_new$`File Start DateTime` <- as.POSIXct(elp_new$`File Start DateTime`,
+                                                  format='%Y%m%d_%H%M%S',
+                                                  origin = "1970-01-01",
+                                                  tz="Africa/Brazzaville") #tz = "UTC"
+      elp_new$`File Start Date`<-format(as.Date(str_extract(elp_new$'Begin File' ,"\\d{8}.\\d{6}"),
+                                                "%Y%m%d"),
+                                        "%m/%d/%Y") # use this for date if you want the file date rather than Raven Begin Date
       elp_new$`Selection Begin DateTime` <- elp_new$`File Start DateTime`+ elp_new$`File Offset (s)` # add File Offset (s)  to calculate selection date-time
-      elp_new$`Begin Date`<- format(as.Date(elp_new$'Selection Begin DateTime',"%Y%m%d",tz="Africa/Brazzaville"),"%m/%d/%Y") # different from File Name Date in that it is the date of the event
+      elp_new$`Begin Date`<- format(as.Date(elp_new$'Selection Begin DateTime',
+                                            "%Y%m%d",
+                                            tz="Africa/Brazzaville"),
+                                    "%m/%d/%Y") # different from File Name Date in that it is the date of the event
       elp_new$`Begin Clock Time` <-format(elp_new$`Selection Begin DateTime`,"%H:%M:%S") # Time of event
       elp_new$`Begin Hour` <- format(as.POSIXct( elp_new$`Begin Clock Time` ,format="%H:%M:%S"),"%H")# hour(elp_new$`Begin Clock Time`)
       elp_new$"Count"<-NA #add "Count" (formerly "Tag 1") column
@@ -214,22 +242,48 @@ Rumble_Selection_Table_Restructure <- function (x) {
       elp_new$Analyst<-NA #add "Analyst" column
       elp_new$"Deployment Number"<-deployment_num # add a deployment number column (change for each deployment)
       elp_new$Disk <- disk_ID
+      if (Detector == "SDv1"){
+        elp_new$Score <- NA
+      } # if Stanford detector was used, add a Score column
       elp_new <- elp_new %>%
-        rename(Score = score_column_name)
+        dplyr::rename(Score = !!sym(score_column_name))
       elp_new$Score<-as.numeric(round(elp_new$Score,digits = 3)) #round the score to 3 decimal places
       elp_new$Site <- substr(str_match(elp_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1],1,
                               nchar(str_match(elp_new$`Begin File`,"[a-zA-Z]{2}\\d{2}[a-zA-Z]{1}.")[,1])-1)
       elp_rand_data<-merge(elp_new,elp_rand,by="Begin Date",all.x=TRUE) #merge the random days (see elp_rand section above) with selection tables to mark which days were randomly reviewed
-      elp_order <- elp_rand_data[c("Selection", "View", "Channel", "Begin Time (s)", "End Time (s)",
-                                 "Low Freq (Hz)", "High Freq (Hz)", "Begin Path", "File Offset (s)",
-                                 "Begin File", "Site", "Begin Hour", "File Start Date","Begin Date",
-                                 "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes",
-                                 "Analyst","Rand", "Deployment Number","Disk")] #reorder columns
+      elp_order <- elp_rand_data[c("Selection",
+                                   "View",
+                                   "Channel",
+                                   "Begin Time (s)",
+                                   "End Time (s)",
+                                   "Low Freq (Hz)",
+                                    "High Freq (Hz)",
+                                    "Begin Path",
+                                    "File Offset (s)",
+                                   "Begin File",
+                                   "Site",
+                                   "Begin Hour",
+                                   "Begin Clock Time",
+                                   "File Start Date",
+                                   "Begin Date",
+                                   "Score",
+                                   "Count",
+                                   "Measurable",
+                                   "Harmonics",
+                                   "Ambiguous",
+                                   "Notes",
+                                   "Analyst",
+                                   "Rand",
+                                   "Deployment Number",
+                                   "Disk")] #reorder columns
       elp_order$"Begin Path"<-gsub("\\\\\\\\159nas\\\\L\\\\ELP\\\\","L:ELP\\\\",elp_order$"Begin Path") # add begin path
       elp_sort<-elp_order[order(elp_order$"File Offset (s)"),]# sort dataframe by file offset # sort by file and file offset
       elp_sort$'Call Criteria'<-"20210212" # Update this with the latest version of the Call Criteria
-      elp_rand_sound<-merge(elp_sort,sound_problem,by="Begin File",all.x=T)# cross-reference with sound problems if the table is empty and create dummy values
-      # elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
+      elp_rand_sound<-merge(elp_sort,
+                            sound_problem,
+                            by="Begin File",
+                            all.x=T)# cross-reference with sound problems if the table is empty and create dummy values
+      elp_rand_sound$`Exclude (y/e)`[is.na(elp_rand_sound$`Exclude (y/e)`)|elp_rand_sound$`Exclude (y/e)`==""] <-"Good" # if the sounds were not excluded, mark as "good"
       elp_rand_sound_exclude <- elp_rand_sound[(elp_rand_sound$`Exclude (y/e)` == "Good"),] # filter selection table only by good sounds and exclude bad sounds
       # if(nrow(elp_rand_sound_exclude) >0){ # if table doesn't have good sounds then remove it, if it does, then save the table
       #     write.table(elp_rand_sound_exclude,
@@ -242,8 +296,14 @@ Rumble_Selection_Table_Restructure <- function (x) {
           elp_rand_sound_exclude$`Low Freq (Hz)` <- 10
           # remove overlapping detections
         }# if FruitPunch FPv1 detector was used, remove overlapping detections and decrease the min frequency
-        write.table(elp_rand_sound_exclude, paste(processed_HH, file_size[i], sep=""),
-           sep="\t", na="", col.names=TRUE, row.names=FALSE, quote=FALSE, append=FALSE) # If table has good sounds, save the table
+        write.table(elp_rand_sound_exclude,
+                    paste(processed_HH, basename(file_size[i]), sep=""),
+                    sep="\t",
+                    na="",
+                    col.names=TRUE,
+                    row.names=FALSE,
+                    quote=FALSE,
+                    append=FALSE) # If table has detections in it, save the table
       }
   }
 
@@ -309,12 +369,13 @@ if(three_rand_days == "n"){
 
 
 # filter tables and move them to corresponding folders in the final folder
+# check if randon days needed
 if(three_rand_days == "y"){
   for (q in 1:length(file_size)){
     elp_merged <- read.table(file_size[q],header=TRUE,sep="\t",check.names=FALSE) #read in the merged selection table
     elp_sound_table <- if(nrow(elp_merged)>0){
               elp_sound <- elp_merged[c("Selection", "View", "Channel", "Begin Time (s)", "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
-                                     "Begin Path", "File Offset (s)", "Begin File", "Site", "Begin Hour", "File Start Date","Begin Date",
+                                     "Begin Path", "File Offset (s)", "Begin File", "Site", "Begin Hour", "Begin Clock Time", "File Start Date","Begin Date",
                                      "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes", "Analyst","Rand", "Deployment Number",
                                      "Sound Problems","Call Criteria","Disk")]
               elp_th<-filter(elp_sound,elp_sound$"Score">=Filter_ScoreThreshold) #filter the merged table by score threshold
@@ -350,7 +411,7 @@ if(three_rand_days == "n"){
     elp_merged <- read.table(file_size[q],header=TRUE,sep="\t",check.names=FALSE) #read in the merged selection table
     elp_sound_table <- if(nrow(elp_merged)>0){
       elp_sound <- elp_merged[c("Selection", "View", "Channel", "Begin Time (s)", "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
-                                "Begin Path", "File Offset (s)", "Begin File", "Site", "Begin Hour", "File Start Date","Begin Date",
+                                "Begin Path", "File Offset (s)", "Begin File", "Site", "Begin Hour", "Begin Clock Time", "File Start Date","Begin Date",
                                 "Score", "Count", "Measurable", "Harmonics", "Ambiguous", "Notes", "Analyst","Rand", "Deployment Number",
                                 "Sound Problems","Call Criteria","Disk")]
       elp_th<-filter(elp_sound,elp_sound$"Score">=Filter_ScoreThreshold) #filter the merged table by score threshold
@@ -635,7 +696,7 @@ for (h in 1:length(files)){
     ScoreThreshold_zero_rand <- ScoreThreshold_zero_rand[c("Selection", "View", "Channel", "Begin Time (s)",
                               "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
                               "Begin Path", "File Offset (s)", "Begin File", "Site",
-                              "Begin Hour", "File Start Date","Begin Date",
+                              "Begin Hour", "Begin Clock Time", "File Start Date","Begin Date",
                               "Score", "Count", "Measurable", "Harmonics", "Ambiguous",
                               "Notes", "Analyst","Rand", "Deployment Number",
                               "Sound Problems","Call Criteria")]
@@ -672,13 +733,31 @@ for (h in 1:length(files)){
     ScoreThreshold_zero$`Begin Hour` <- ""
     ScoreThreshold_zero$"File Start Date" <- ScoreThreshold_zero$'Begin Date'
 
-    ScoreThreshold_zero <- ScoreThreshold_zero[c("Selection", "View", "Channel", "Begin Time (s)",
-                                                      "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
-                                                      "Begin Path", "File Offset (s)", "Begin File", "Site",
-                                                      "Begin Hour", "File Start Date","Begin Date",
-                                                      "Score", "Count", "Measurable", "Harmonics", "Ambiguous",
-                                                      "Notes", "Analyst", "Deployment Number",
-                                                      "Sound Problems","Call Criteria")]
+    ScoreThreshold_zero <- ScoreThreshold_zero[c("Selection",
+                                                 "View",
+                                                 "Channel",
+                                                 "Begin Time (s)",
+                                                 "End Time (s)",
+                                                 "Low Freq (Hz)",
+                                                 "High Freq (Hz)",
+                                                 "Begin Path",
+                                                 "File Offset (s)",
+                                                 "Begin File",
+                                                 "Site",
+                                                 "Begin Hour",
+                                                 "Begin Clock Time",
+                                                 "File Start Date",
+                                                 "Begin Date",
+                                                 "Score",
+                                                 "Count",
+                                                 "Measurable",
+                                                 "Harmonics",
+                                                 "Ambiguous",
+                                                 "Notes",
+                                                 "Analyst",
+                                                 "Deployment Number",
+                                                 "Sound Problems",
+                                                 "Call Criteria")]
 
     write.table(ScoreThreshold_zero,file=paste("~/R/Bobbi_Scripts/Packages/elpR/Files/zero_days_SSTs/rumble/",standard_name_disk,"_",Detector,"_p",sub("\\d.","",Filter_ScoreThreshold),"_ZeroDets.txt",sep=""),
                 sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
@@ -696,3 +775,8 @@ for (h in 1:length(files)){
   setwd('~/R/Bobbi_Scripts/Packages/elpR')
 }
 
+# BJE added "Begin Clock Time" to output file. If breaks, check this.
+
+# library(devtools)
+# document()
+# build()

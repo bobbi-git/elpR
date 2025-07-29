@@ -33,22 +33,22 @@ rm(list = ls())
 # library(lubridate)
 # library(readxl)
 
-output <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/merged_data/dep01-04" # where you want the merged data to be saved to
-sound_checks <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/sound_checks" # where all the sound check files are located
-ele_tables<-"L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/ele" # where all the elephant selection tables are located
-zero_txt <- "L:/ELP/Projects/Dzanga/2022_DSPA_PAM_project/dz_analysis/base_tables/HH_zero_detection_days" # where the zero-day (selection tables with dummy events on dates without rumbles) tables are located
+output <- "L:/ELP/Projects/Other/Ghana/kakum_Analysis/base_tables/kk_2024/merged_data" # where you want the merged data to be saved to
+sound_checks <- "L:/ELP/Projects/Other/Ghana/kakum_Analysis/base_tables/kk_2024/sound_checks" # where all the sound check files are located
+ele_tables<-"L:/ELP/Projects/Other/Ghana/kakum_Analysis/base_tables/kk_2024/elephant" # where all the elephant selection tables are located
+zero_txt <- "L:/ELP/Projects/Other/Ghana/kakum_Analysis/base_tables/kk_2024/HH_zero_detection_days" # where the zero-day (selection tables with dummy events on dates without rumbles) tables are located
 # gunshot_tables <-
 
-project_name <- "DzangaBai" # name of project (e.g., "PNNN", "DzangaBai", etc.)
-deployment_num <- "01-04" # deployment(s) number (e.g., "01-12", "04")
+project_name <- "Kakum" # name of project (e.g., "PNNN", "DzangaBai", "Kakum", etc.)
+deployment_num <- "02" # deployment(s) number (e.g., "01-12", "04")
 detector_name <- "HHv6" # # name of the detector used for these data. For HoriHarm:HHv6, FruitPunchAI: FPv1, Stanford Detector: SDv1. For other, type the name. Do not include spaces or special characters
 
 fileDurationMin <- 60 # duration in minutes of the expected sound file duration (60 for 1 hr, 1440 for 1 day)
 
-site_lat_long <- read.table("C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/sites/DSPA_DZ_Sites.txt",
+site_lat_long <- read.table("C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/sites/Kakum_Sites.txt",
                             header = T, sep ="\t", check.names=FALSE,quote = "\"")# load general table for sites
 
-rand_dates_needed <- "y" # type "y" if so, type "n" of not
+rand_dates_needed <- "n" # type "y" if so, type "n" of not
 ele_bad_sound_remove <- "y" # type "y" if sounds with <23 hrs of sound should be excluded. Type "n" if not
 use_only_sites_provided <- "y" # choose "y" if you only want to include the sites that were listed in the site_lat_long file. This enables exclusion of other sites that may be in the selection tables.
 

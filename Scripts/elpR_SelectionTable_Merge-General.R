@@ -11,16 +11,17 @@
 #        End Time (s), High Freq (s), Low Freq (s), File Offset (s), Begin Path
 # - output file is .txt selection table
 
-library(dplyr)
-
 path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp" # directory where selection tables are saved (can have subfolders)
 # extract begin clock time from file name?
 # extract begin date from file name?
 
 # For files in a single folder:
-merge_selection_tables(path, recursive = FALSE)
+Ah, perhaps
 
 # For files in folder and subfolders:
 merge_selection_tables(path, recursive = TRUE)
 
 
+### TO DO ###
+# make site name more flexible. Currently assumes first segment of file name is site name and populates that in the site column.
+# Begin Clock Time is "NULL" in merged table

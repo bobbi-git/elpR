@@ -88,7 +88,7 @@ print(paste("Total hours of sounds in this dataset:",(sum(sound_check_merge_df2$
 
 ##### Rand Dates  #####
 #(3 random dates per week for elephant data, beginning in deployment 4)
-elp_rand<-read.table('~/R/Bobbi_Scripts/PNNNR/Files/rand-days/Rand_dates.csv',header=TRUE,sep="\t",row.names=NULL) #read in rand file that contains 3 random days per week of the survey
+elp_rand<-read.table('~/R/Bobbi_Scripts/Packages/elpR/Files/rand-days/Rand_dates.csv',header=TRUE,sep="\t",row.names=NULL) #read in rand file that contains 3 random days per week of the survey
 elp_rand$Date<-format(as.Date(elp_rand$Date,"%d-%b-%y"), "%m/%d/%Y") #tell R what the date structure is and read it as date and format the date to match Raven selection tables
 elp_rand$Date <- as.Date(elp_rand$Date,"%m/%d/%Y")
 elp_rand$"Rand"<-"rand" #create a column that is populated with "rand" to merge with the selection tables
