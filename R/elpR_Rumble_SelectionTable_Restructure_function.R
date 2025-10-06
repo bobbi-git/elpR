@@ -297,7 +297,7 @@ Rumble_Selection_Table_Restructure <- function (x) {
           # remove overlapping detections
         }# if FruitPunch FPv1 detector was used, remove overlapping detections and decrease the min frequency
         write.table(elp_rand_sound_exclude,
-                    paste(processed_HH, basename(file_size[i]), sep=""),
+                    paste(processed_HH,file.path(basename(dirname(file_size[i])), basename(file_size[i])) , sep=""),
                     sep="\t",
                     na="",
                     col.names=TRUE,
@@ -306,7 +306,6 @@ Rumble_Selection_Table_Restructure <- function (x) {
                     append=FALSE) # If table has detections in it, save the table
       }
   }
-
 
 
 #### 2) MERGE ALL SELECTION TABLES BY SITE #### (for site-foldered structure)
@@ -456,12 +455,12 @@ for (h in 1:length(files)){
 #    }
 
 #### Summarize sampling effort and # detections per site day ####
-  # sound check sound list
+  # prepare sound check sound list of good sounds
   ele_sounds <- sound_check
   if (min_23hrs == "n"){
     ele_sounds$`Exclude (y/e)`[ele_sounds$`Exclude (y/e)`=="e"] <-"Good"
   } # if 23 h per day is not required for analysis, mark "e" as "Good", otherwise, leave it as "e"
-  ele_sounds$`Exclude (y/e)`[is.na(ele_sounds$`Exclude (y/e)`)|ele_sounds$`Exclude (y/e)`==""] <-"Good"
+  ele_sounds$`Exclude (y/e)`[is.na(ele_sounds$`Exclude (y/e)`)|ele_sounds$`Exclude (y/e)`==""] <-"Good" # if minimum of 23 hrs per day required, mark the blank cells in Exclude (y/n) column as good. Leave "y" and "e" alone.
   #ele_sounds <- ele_sounds[(ele_sounds$`Exclude (y/e)` == "Good"),]#
   ele_sounds2 <- ele_sounds[c("Site", "Begin File", "File Duration (s)", "Duration Minutes","Exclude (y/e)","Sound Problems", "File Path")]
   names(ele_sounds2)[names(ele_sounds2) == "File Path"] <- "Begin Path"
@@ -499,14 +498,16 @@ for (h in 1:length(files)){
   }
 
 
-  # merge detections and sound files
+  # merge detections and sound file info (sound check)
   ele_sound_dets <- merge(ele_sounds2,det_files_Detector_ScoreThreshold_summary,all.x=T)
   ele_sound_dets <- merge(ele_sound_dets,det_files_Filter_ScoreThreshold_dets_summary,all.x=T)
+  # mark non-rand dates if random dates are required
   if(three_rand_days == "y"){
     ele_sound_dets <- merge(ele_sound_dets,det_files_Filter_ScoreThreshold_dets_rand_summary,all.x=T)
     ele_sound_dets <- merge(ele_sound_dets,elp_rand,all.x=T,by.x="Date", by.y="Begin Date")
     ele_sound_dets$Rand[is.na(ele_sound_dets$Rand)] <- "non-rand"
   }
+
   for(f in 1:nrow(ele_sound_dets)) {
     if(ele_sound_dets$`Exclude (y/e)`[f] == "Good") {
       ele_sound_dets$`Sum Rumbles > Detector Threshold`[f][is.na(ele_sound_dets$`Sum Rumbles > Detector Threshold`[f])] <-0
@@ -561,6 +562,9 @@ for (h in 1:length(files)){
 
 
 # save summaries as a new tab in sound_check
+  # reports summarize based on sound files in sound check. If detections occur on dates not in sound check,
+  # these summaries won't reflect those detections, but the processed selection tables will still have the detections
+  # unless the option for filtering detections by begin and end date is selected
   proj_sites <- read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=TRUE,sep="\t", check.names=FALSE)
   ele_det_sites <- data.frame(Site = unique(proj_sites$Site))
 
@@ -696,7 +700,7 @@ for (h in 1:length(files)){
     ScoreThreshold_zero_rand <- ScoreThreshold_zero_rand[c("Selection", "View", "Channel", "Begin Time (s)",
                               "End Time (s)", "Low Freq (Hz)", "High Freq (Hz)",
                               "Begin Path", "File Offset (s)", "Begin File", "Site",
-                              "Begin Hour", "Begin Clock Time", "File Start Date","Begin Date",
+                              "Begin Hour", "File Start Date","Begin Date",
                               "Score", "Count", "Measurable", "Harmonics", "Ambiguous",
                               "Notes", "Analyst","Rand", "Deployment Number",
                               "Sound Problems","Call Criteria")]
@@ -705,7 +709,7 @@ for (h in 1:length(files)){
                 sep="\t",na="",col.names=TRUE,row.names=FALSE,quote=FALSE)
   }
 
-  # save table for all detections (rand and non-rand) for filtered score threshold
+  # save table for all detections (rand and non-rand) and for filtered score threshold
     sounds_det_ScoreTHreshold <- ele_sound_dets[(ele_sound_dets$`Exclude (y/e)` == "Good"),]
     sounds_det_ScoreTHreshold <- sounds_det_ScoreTHreshold[(sounds_det_ScoreTHreshold$`Sum Rumbles > Filtered Detector Threshold` == 0),]
     ScoreThreshold_zero <- sounds_det_ScoreTHreshold[c("Date","Site","Begin File","Sound Problems")]
@@ -745,7 +749,6 @@ for (h in 1:length(files)){
                                                  "Begin File",
                                                  "Site",
                                                  "Begin Hour",
-                                                 "Begin Clock Time",
                                                  "File Start Date",
                                                  "Begin Date",
                                                  "Score",

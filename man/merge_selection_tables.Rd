@@ -10,6 +10,8 @@ merge_selection_tables(path, recursive = TRUE)
 \item{path}{Character string specifying the directory containing selection table files}
 
 \item{recursive}{Logical; if TRUE, searches for files recursively in subdirectories}
+
+\item{remove_duplicates}{Logical; if TRUE, removes duplicate entries based on time-frequency windows. Default is FALSE.}
 }
 \value{
 A data frame containing the merged selection tables with standardized columns:

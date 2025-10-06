@@ -146,25 +146,25 @@ merge_selection_tables <- function(path, recursive = TRUE) {
   # Combine tables
   merged_df <- bind_rows(all_tables)
 
-  # Check for duplicates using base R approach
-  duplicate_check <- merged_df[duplicated(merged_df[, c("Begin File", "File Offset (s)",
-                                                        "End Time (s)", "High Freq (Hz)",
-                                                        "Low Freq (Hz)")]) |
-                                 duplicated(merged_df[, c("Begin File", "File Offset (s)",
-                                                          "End Time (s)", "High Freq (Hz)",
-                                                          "Low Freq (Hz)")], fromLast = TRUE), ]
-
-  cat("\nDuplicate entries found:", nrow(duplicate_check), "\n")
-
-  # Remove duplicates if found
-  if(nrow(duplicate_check) > 0) {
-    cat("\nSample of duplicates:\n")
-    print(head(duplicate_check))
-
-    merged_df <- merged_df %>%
-      distinct(`Begin File`, `File Offset (s)`, `End Time (s)`,
-               `High Freq (Hz)`, `Low Freq (Hz)`, .keep_all = TRUE)
-  }
+  # # Check for duplicates using base R approach
+  # duplicate_check <- merged_df[duplicated(merged_df[, c("Begin File", "File Offset (s)",
+  #                                                       "End Time (s)", "High Freq (Hz)",
+  #                                                       "Low Freq (Hz)")]) |
+  #                                duplicated(merged_df[, c("Begin File", "File Offset (s)",
+  #                                                         "End Time (s)", "High Freq (Hz)",
+  #                                                         "Low Freq (Hz)")], fromLast = TRUE), ]
+  #
+  # cat("\nDuplicate entries found:", nrow(duplicate_check), "\n")
+  #
+  # # Remove duplicates if found
+  # if(nrow(duplicate_check) > 0) {
+  #   cat("\nSample of duplicates:\n")
+  #   print(head(duplicate_check))
+  #
+  #   merged_df <- merged_df %>%
+  #     distinct(`Begin File`, `File Offset (s)`, `End Time (s)`,
+  #              `High Freq (Hz)`, `Low Freq (Hz)`, .keep_all = TRUE)
+  # }
 
   # Sort by Begin File and File Offset
   merged_df <- merged_df[order(merged_df$"Begin File", merged_df$"File Offset (s)"),]
@@ -176,18 +176,21 @@ merge_selection_tables <- function(path, recursive = TRUE) {
   merged_df <- merged_df %>%
     select(Selection, `Original Selection ID`, `Source Selection Table`, everything())
 
+
+  # add Begin Clock Time column if it doesn't exist (test)
+  # merged_df$`Begin Clock Time` <- sapply(1:nrow(merged_df), function(i) {
+  #   time <- selection_datetime(merged_df$`Begin File`[i],
+  #                              merged_df$`File Offset (s)`[i])
+  #   format(time, "%Y-%m-%d %H:%M:%S")
+  # })
+  # merged_df$`Begin Clock Time` <- selection_datetime(merged_df$`Begin File`,
+  #                                                    merged_df$`File Offset (s)`)
+
   # Create output filename
   output_file <- file.path(path,
                            paste0("combined_selection_tables_",
                                   format(Sys.time(), "%Y%m%d_%H%M%S"),
                                   ".txt"))
-
-  # add Begin Clock Time column if it doesn't exist (test)
-  merged_df$`Begin Clock Time` <- mapply(selection_datetime,
-                                     merged_df$`Begin File`,  # or whatever column contains your filenames
-                                     merged_df$`File Offset (s)`)
-
-  merged_df$`Begin Clock Time` <- format(merged_df$event_datetime, "%Y-%m-%d %H:%M:%S")
 
   # Write output
   write.table(merged_df,
@@ -209,4 +212,6 @@ merge_selection_tables <- function(path, recursive = TRUE) {
 
 
 ## TO DO
-# - add begin clock time if it doesn't exist
+# check for duplicates and remove if desired? No necessary?
+# For validation purposes, is it possible to print the total number of rows (excluding headers) that were read in as well as the total number of rows combined in the final table?
+# clock time doesn't work

@@ -8,23 +8,17 @@
 #' @param filename A string containing the filename with format "YYYYMMDD_HHMMSS"
 #' @param file_offset_seconds Numeric offset in seconds (Raven's File Offset (s))
 #' @return POSIXct datetime object in new Begin Clock Time
-#' @import lubridate stringr
 #' @export
-#' @importFrom lubridate seconds
-#' @importFrom stringr str_extract
 
 selection_datetime <- function(filename, file_offset_seconds) {
-  library(lubridate)
-  library(stringr)
-
-  # Extract date and time using regex
-  datetime_str <- str_extract(filename, "\\d{8}_\\d{6}")
+  # Extract date and time using base R
+  datetime_str <- regmatches(filename, regexpr("\\d{8}_\\d{6}", filename))
 
   # Convert to POSIXct datetime object
-  datetime <- ymd_hms(gsub("_", "", datetime_str))
+  datetime <- as.POSIXct(datetime_str, format = "%Y%m%d_%H%M%S")
 
   # Add offset
-  new_datetime <- datetime + seconds(file_offset_seconds)
+  new_datetime <- datetime + as.numeric(file_offset_seconds)
 
   return(new_datetime)
 }
