@@ -220,7 +220,7 @@ sound.check <- function (x)
   sound_check$`Expected File Start Difference`<-round(seconds_to_period(abs(sound_check$'Current File Start DateTime'-sound_check$'Expected File Start DateTime')),digits=2)
   sound_check$`Expected File Start Difference minutes`<-round(period_to_seconds(sound_check$`Expected File Start Difference`)/60,digits=2)
   sound_check$`Sound Gap Check`<-ifelse(seconds_to_period(sound_check$'Current File Start DateTime'-sound_check$'Expected File Start DateTime')>300,"Sound Gap",
-                                        ifelse(seconds_to_period(sound_check$"Current File Start DateTime"-sound_check$"Expected File Start DateTime")<(-300),"Sound Overlap",""))
+                                        ifelse(seconds_to_period(sound_check$"Current File Start DateTime"-sound_check$"Expected File Start DateTime")<(-300),"Sound Overlap","")) #modify to be within 95% of fileDurationMin
   sound_check$`File Length Check`<-ifelse(sound_check$`File Duration (s)`==0,"No Data","") # mark sound files with length 0 as "No Data"
   sound_check$Notes <- ""
   sound_check$`Deployment Number` <- deployment_num
@@ -261,7 +261,8 @@ sound.check <- function (x)
 
   sound_stats <- cbind(avg_GB,sum_GB$x,avg_duration_Hrs$x,sum_duration_Hrs$x)
   colnames(sound_stats) <- c("Site","Average Size (GB)","Sum Size (GB)","Average Duration (Hours)","Sum Duration (Hours)")
-  proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=TRUE,sep="\t", check.names=FALSE))
+  #proj_sites <- as.data.frame(read.table(paste('~/R/Bobbi_Scripts/Packages/elpR/Files/sites/',sites,sep=""),header=TRUE,sep="\t", check.names=FALSE)) #bje originally used
+  proj_sites <- as.data.frame(read.table(sites,header=TRUE,sep="\t", check.names=FALSE)) # Jiji added
   # colnames(proj_sites) <- c("Site")
   site_sound_stats <- merge(sound_stats,proj_sites,by = "Site",all=TRUE)# merge the sound stats and sites together
 
@@ -276,9 +277,10 @@ sound.check <- function (x)
                           "Sample_Rate" = sample_rate_check,
                           "Sound Stats" = site_sound_stats)
 
-  sound_check_file <- "~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/"
+  #sound_check_file <- "~/R/Bobbi_Scripts/Packages/elpR/Files/sound_check/" # bje originally used
+  write.xlsx(list_of_reports,file=paste(getwd(), "/Files/sound_check/Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),asTable=TRUE,na="") # Jiji added
+  #write.xlsx(list_of_reports,file=paste(sound_check_file,"Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),asTable=TRUE,na="")
 
-  write.xlsx(list_of_reports,file=paste(sound_check_file,"Sound_Check_Reports_",standard_name_disk,".xlsx",sep=""),asTable=TRUE,na="")
   #write.table(sound_check,file=paste(sound_check_file,"Sound_Check_",standard_name_disk,".txt",sep=""),sep="\t",na="",col.names=TRUE,row.names=FALSE, quote=FALSE)
 
   return(c(sound_stats))
@@ -289,5 +291,5 @@ sound.check <- function (x)
   #   facet_wrap(~ Site, nrow = 2) +
   #   ylab("File Duration (Hours)")# plot total recording duration per file by time per site
   # )
-  setwd('~/R/Bobbi_Scripts/Packages/elpR')
+  #setwd('~/R/Bobbi_Scripts/Packages/elpR') #bje originally used
 }
