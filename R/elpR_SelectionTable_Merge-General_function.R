@@ -56,10 +56,24 @@ merge_selection_tables <- function(path, recursive = TRUE) {
     stop("The specified directory does not exist")
   }
 
-  # Determine which folders we’ll process
+  # List of required priority columns
+  priority_cols <- c(
+    "Selection",
+    "Original Selection ID",
+    "Source Selection Table",
+    "Begin Time (s)",
+    "End Time (s)",
+    "Low Freq (Hz)",
+    "High Freq (Hz)",
+    "File Offset (s)",
+    "Begin Path",
+    "Begin File"
+  )
+
+  # Determine folders to process
   if (recursive) {
     folders_to_process <- list.dirs(path, recursive = FALSE)
-    folders_to_process <- folders_to_process[folders_to_process != path]  # skip top-level
+    folders_to_process <- folders_to_process[folders_to_process != path]
     if (length(folders_to_process) == 0) {
       cat("No subfolders found in", path, "\n")
       return(invisible(NULL))
@@ -71,19 +85,6 @@ merge_selection_tables <- function(path, recursive = TRUE) {
   # Loop over each folder
   for (folder_path in folders_to_process) {
     folder_prefix <- if (recursive) basename(folder_path) else NULL
-
-    priority_cols <- c(
-      "Selection",
-      "Original Selection ID",
-      "Source Selection Table",
-      "Begin Time (s)",
-      "End Time (s)",
-      "Low Freq (Hz)",
-      "High Freq (Hz)",
-      "File Offset (s)",
-      "Begin Path",
-      "Begin File"
-    )
 
     file_names <- list.files(path = folder_path,
                              pattern = "\\.txt$",
@@ -106,36 +107,55 @@ merge_selection_tables <- function(path, recursive = TRUE) {
     selection_counter <- 0
     first_write <- TRUE
 
-    # Process each file in this folder
+    # This will keep track of all extra columns across files
+    all_extra_cols <- character()
+
+    # First scan: collect all columns across files
+    for (fn in file_names) {
+      table <- suppressWarnings(
+        tryCatch(
+          read.table(fn, header = TRUE, sep = "\t", check.names = FALSE,
+                     quote = "", fill = TRUE, stringsAsFactors = FALSE),
+          error = function(e) NULL
+        )
+      )
+      if (!is.null(table) && nrow(table) > 0) {
+        extra_cols <- setdiff(names(table), priority_cols)
+        all_extra_cols <- union(all_extra_cols, extra_cols)
+      }
+    }
+
+    # Final column order: priority first, then extras sorted
+    final_cols <- c(priority_cols, sort(all_extra_cols))
+
+    # Process each file
     for (fn in file_names) {
       cat("Reading file:", fn, "\n")
-      flush.console()
 
-      table <- tryCatch({
-        read.table(fn,
-                   header = TRUE,
-                   sep = "\t",
-                   check.names = FALSE,
-                   quote = "",
-                   fill = TRUE,
-                   stringsAsFactors = FALSE)
-      }, error = function(e) {
-        cat("Error reading file:", fn, "-", e$message, "\n")
-        return(NULL)
-      })
-
+      table <- suppressWarnings(
+        tryCatch(
+          read.table(fn, header = TRUE, sep = "\t", check.names = FALSE,
+                     quote = "", fill = TRUE, stringsAsFactors = FALSE),
+          error = function(e) NULL
+        )
+      )
       if (is.null(table) || nrow(table) == 0) next
 
-      # Add metadata columns
+      # Add missing priority columns as NA
+      for (col in priority_cols) {
+        if (!col %in% names(table)) {
+          table[[col]] <- NA
+        }
+      }
+
+      # Metadata columns
       if ("Selection" %in% names(table)) {
         table$`Original Selection ID` <- table$Selection
       }
       table$`Source Selection Table` <- basename(fn)
 
-      numeric_cols <- c("Begin Time (s)", "End Time (s)",
-                        "Low Freq (Hz)", "High Freq (Hz)",
-                        "File Offset (s)")
-
+      numeric_cols <- c("Begin Time (s)", "End Time (s)", "Low Freq (Hz)",
+                        "High Freq (Hz)", "File Offset (s)")
       for (col in names(table)) {
         if (col %in% numeric_cols) {
           table[[col]] <- suppressWarnings(as.numeric(as.character(table[[col]])))
@@ -148,25 +168,24 @@ merge_selection_tables <- function(path, recursive = TRUE) {
         table$`Begin File` <- basename(as.character(table$"Begin Path"))
       }
 
-      # Sort columns: priority first, then others
-      other_cols <- setdiff(names(table), priority_cols)
-      sorted_other_cols <- sort(other_cols)
-      all_cols <- c(priority_cols[priority_cols %in% names(table)], sorted_other_cols)
-      table <- table[, all_cols, drop = FALSE]
+      # Set the final consistent column order
+      # Missing columns from extra_cols will also be added as NA
+      for (col in final_cols) {
+        if (!col %in% names(table)) {
+          table[[col]] <- NA
+        }
+      }
+      table <- table[, final_cols, drop = FALSE]
 
-      # Sort rows by file and offset
+      # Sort rows
       table <- table[order(table$`Begin File`, table$`File Offset (s)`),]
 
-      # Add continuous selection numbers across files
+      # Continuous selection numbers
       rows <- nrow(table)
       table$Selection <- seq(selection_counter + 1, selection_counter + rows)
       selection_counter <- selection_counter + rows
 
-      # Move Selection to first position
-      table <- table %>%
-        select(Selection, `Original Selection ID`, `Source Selection Table`, everything())
-
-      # Write output — first file has headers, rest append without headers
+      # Write output
       if (first_write) {
         write.table(table, output_file, sep = "\t", row.names = FALSE,
                     quote = FALSE, fileEncoding = "UTF-8", na = "")
