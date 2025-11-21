@@ -1,9 +1,9 @@
 Package: elpR
 Type: Package
-Title: The Elephant Listening Project File Management
+Title: The Elephant Listening Project Data Management
 Version: 0.1.0
 Authors@R: 
-    person("Bobbi J.", "Estabrook", , "bobbi.estabrook@cornell.edu", role = c("aut", "cre"))
+    person("Bobbi J.", "Estabrook", , "bobbi.estabrook at cornell.edu", role = c("aut", "cre"))
 Maintainer: Bobbi J. Estabrook <bje37@cornell.edu>
 Description: Tools for processing and analyzing elephant rumble detector output,
     gunshot detector output, and other detector output in Raven Pro selection tables.

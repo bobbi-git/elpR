@@ -12,7 +12,7 @@
 # - output file is .txt Raven sound selection table
 
 # choose path with your selection tables to merge
-path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/Selection_Tables/other" # directory where selection tables are saved (can have subfolders)
+#path <- "C:/Users/bje37/Documents/R/Bobbi_Scripts/Packages/elpR/Files/temp" # directory where selection tables are saved (can have subfolders)
 # -or-
 path <- rstudioapi::selectDirectory(
   caption = "Select folder containing your files",
@@ -21,6 +21,8 @@ path <- rstudioapi::selectDirectory(
 )
 # extract begin clock time from file name?
 # extract begin date from file name?
+# use sound check file - only good days
+# use subset of dates (user chooses a file with those dates)
 
 # For files in a single folder:
 merge_selection_tables(path, recursive = FALSE)

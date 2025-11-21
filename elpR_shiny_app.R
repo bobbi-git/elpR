@@ -4,6 +4,7 @@ library(shinyFiles) #shinyDirChoose(), parseDirPath()
 library(gbRd) #Rd_fun()
 library(tools) #Rd2HTML()
 library(readr) #read_files()
+library(openxlsx)
 
 assign("shiny_dir", getwd(), envir = .GlobalEnv) #for rumble & gunshot restructure
 
