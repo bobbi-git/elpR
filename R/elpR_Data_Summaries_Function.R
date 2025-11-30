@@ -29,8 +29,8 @@ data_summaries <- function (x) {
     } else {print("you indicated that you DO NOT have a sound_check file for this script to filter out bad sounds")
         }
     if(rand_dates_needed == "y"){
-      print("you indicated that you would like to filter the selections by those that fall on a pre-selected random date")
-    } else { print("you indicated that you DO NOT want to filter the selections by those that fall on a pre-selected random date. All dates will be included in results")
+      print("you indicated that you would like to filter the selections by those that fall on a pre-selected dates")
+    } else { print("you indicated that you DO NOT want to filter the selections by those that fall on a pre-selected dates. All dates will be included in results")
       }
     if(ele_bad_sound_remove == "y"){
       print("you want to remove detections that occur on sound files with <23 hrs of sound")
@@ -45,7 +45,7 @@ data_summaries <- function (x) {
   setwd(output)
 
     # install and load necessary packages
-    det_sum_packages <- c("shiny","dplyr", "tidyverse","stringr","purrr","lubridate","readxl","stargazer","broom","ggplot2")
+    det_sum_packages <- c("shiny","tidyverse","stringr","purrr","lubridate","readxl","stargazer","broom","ggplot2")
       options(warn = -1)
     for (i in det_sum_packages){
       if (!require(i, quietly = TRUE, character.only = TRUE)){
@@ -75,7 +75,6 @@ data_summaries <- function (x) {
 
   ##### Sound Check Files #####
     # Should read in excel tables, not .txt files since those aren't frequently updated
-    # add if statement here if user has sound check...
     if(sound_check_include == "y"){
       sound_check_list <- list.files(path = sound_checks,
                                      recursive=T,
@@ -137,16 +136,17 @@ data_summaries <- function (x) {
 
   ##### Rand Dates  #####
     #(3 random dates per week for elephant data, beginning in deployment 4)
-    if(rand_dates_needed == "y"){
-      elp_rand<-read.table('~/R/Bobbi_Scripts/Packages/elpR/Files/rand-days/Rand_dates.csv',header=TRUE,sep="\t",row.names=NULL) #read in rand file that contains 3 random days per week of the survey
+    if(subset_dates_needed == "y"){
+      elp_rand<-read.table(subset,header=TRUE,sep="\t",row.names=NULL)#read.table('~/R/Bobbi_Scripts/Packages/elpR/Files/rand-days/Rand_dates.csv',header=TRUE,sep="\t",row.names=NULL) #read in rand file that contains 3 random days per week of the survey
       elp_rand$Date<-format(as.Date(elp_rand$Date,"%d-%b-%y"), "%m/%d/%Y") #tell R what the date structure is and read it as date and format the date to match Raven selection tables
       elp_rand$Date <- as.Date(elp_rand$Date,"%m/%d/%Y")
       elp_rand$"Rand"<-"rand" #create a column that is populated with "rand" to merge with the selection tables
-    }
+    } #update this to be "seubset" instead of rand, so other subsets can be used. Document format of .csv file (date = d-Mon-yy)
 
-  ##### Hori-Harm Selection Tables #####
+  ##### Selection Tables #####
   # (elephant detections (0+))
-  ele_tables_list<-list.files(path = ele_tables,recursive=F,full.names=TRUE, pattern = "*.txt") # list all the selection tables in the ele_tables folder
+  # update to accomodate other tables, not just elephant
+  ele_tables_list<-list.files(path = selection_tables,recursive=F,full.names=TRUE, pattern = "*.txt") # list all the selection tables in the ele_tables folder
   ele_tables_list <- lapply(ele_tables_list, function(x) {
     read.table(file = x, header = T, sep ="\t", check.names=FALSE,quote = "\"",comment.char = "", fill=T)})  # Read the files in, assuming tab separator (except the one for dep1-3 since we load in one for deps 1-8)
   #names(ele_tables_list) <- basename(ele_tables[c(1:6,8)]) # name the objects in list as the file names
@@ -185,26 +185,26 @@ data_summaries <- function (x) {
   print(paste("Minimum rumble selection table date:",min(ele_dets_df$`File Start DateTime`, na.rm = TRUE),sep=" "))
   print(paste("Maximum rumble selection table date:",max(ele_dets_df$`File Start DateTime`, na.rm = TRUE),sep=" "))
   print(paste("Total detected rumbles:",sum(ele_dets_df$`Rumble Count`, na.rm = TRUE),sep=" ")) # 2382 rumbles
-  write.table(ele_dets_df,paste(output,"/",proj_dep_name,"_ele_SSTs_merged.txt",sep=""),sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+  write.table(ele_dets_df,paste(output,"/",proj_dep_name,"_SSTs_merged.txt",sep=""),sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
 
 
   ##### Zero-Days Tables  #####
   # selection tables with 0 hori-harm detections at filtered score threshold on rand dates
-    if(exists(zero_txt)){
+    if(exists("zero_txt")){
       zero_days<-list.files(path = zero_txt,recursive=T,full.names=TRUE, pattern = "*.txt") # list all the selection tables in the ele_tables folder
       zero_days_list <- lapply(zero_days, function(x) {read.table(file = x, header = T, sep ="\t", check.names=FALSE,quote = "\"",comment.char = "")})  # Read the files in, assuming tab separator
       names(zero_days_list) <- basename(zero_days) # name the objects in list as the file names
       zero_days_df <- dplyr::bind_rows(zero_days_list) # merge all tables together
-      zero_days_df$Rand <- ""
-      #zero_days_df<- rename(zero_days_df, "Deployment Number" = "Deployment")
+      #zero_days_df$Rand <- "" # add empty rand column
+      #zero_days_df<- rename(zero_days_df, "Deployment Number" = "Deployment") # rename deployment column
       #View(zero_days_df)
       #names(zero_days_df)
 
       zero_days_df2 <- zero_days_df[,c("Site", "Begin File","File Offset (s)","Count",
-                                       "Deployment Number","Sound Problems", "Notes", "Rand")]
+                                       "Deployment Number","Sound Problems", "Notes")] # removed Rand
       zero_days_df2 <- dplyr::rename(zero_days_df2, "Rumble Count" = "Count")
       zero_days_df2 <- dplyr::rename(zero_days_df2, "File Name" = "Begin File")
-      zero_days_df2$'Rumble Count' <- 0
+      #zero_days_df2$'Rumble Count' <- 0
       zero_days_df2$`File Start DateTime` <- as.POSIXct(str_extract(zero_days_df2$`File Name`,"\\d{8}.\\d{6}"),format='%Y%m%d_%H%M%S',origin = "1970-01-01",tz="Africa/Brazzaville") # convert the data and time charaters to real date and time with the correct time zone
       zero_days_df2$`File Start Date` <- format(as.Date(str_extract(zero_days_df2$'File Name' ,"\\d{8}.\\d{6}"),"%Y%m%d"),"%m/%d/%Y")
       zero_days_df2$`Detection DateTime` <- zero_days_df2$`File Start DateTime`+ zero_days_df2$`File Offset (s)`
@@ -222,13 +222,10 @@ data_summaries <- function (x) {
 
   #### FILTER BY ANALYSIS DATES ####
 
-  #### gunshot selection tables ####
-  # ideally make this usable for all types of selection tables and flexible
-
 
   #create table for every hour from the first to last in detector files
   # combing elephant rumbles and zero days
-    if(exists(zero_txt)){
+    if(exists("zero_txt")){
       ele_dets_df_zero <- full_join(ele_dets_df,zero_days_df2)
       print(paste("Total rumbles in merged table:",sum(ele_dets_df_zero$`Rumble Count`,na.rm=T), sep = " ")) # 2382
       print(paste("Min date in merged table:",min(ele_dets_df_zero$Date), sep = " "))
@@ -241,7 +238,7 @@ data_summaries <- function (x) {
   # ele_dets_df_zero$Year <- year(ele_dets_df_zero$Date)
 
 
-  # add sound check (if user requested)
+  # add sound check (if user requested) and remove bad sounds if needed from the combined table
     if(ele_bad_sound_remove == "y"| sound_check_include == "y"){
            ele_dets_df_zero <- full_join(ele_dets_df_zero,sound_check_merge_df2) # merge det df with sound check
            ele_dets_df_zero <- ele_dets_df_zero %>%
@@ -266,6 +263,9 @@ data_summaries <- function (x) {
   # names(ele_dets_df_zero)
   # zero_days_df2 %>% filter(Date == "2021-06-05", Site == "nn03g") %>%  nrow() > 0 # check for unintended dates
 
+# save merged dataframe
+    write.table(ele_dets_df_zero,paste(output,"/",proj_dep_name,"_detections_ZeroDays_ExcludeBadSounds_Rand_all.txt",sep=""),
+                sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
 
   #### HOURLY SUMMARIES ####
   # summarize rumble count to hourly
@@ -608,7 +608,7 @@ data_summaries <- function (x) {
       MeanDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
       else mean(`total_rumbles`, na.rm=TRUE),
       sdDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
-      else sd(`total_rumbles`, na.rm=TRUE),
+      else stats::sd(`total_rumbles`, na.rm=TRUE),
       n = dplyr::n(),
       seDailyRumbles = sdDailyRumbles/sqrt(n),
       maxDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
@@ -622,7 +622,7 @@ data_summaries <- function (x) {
       meanRumblesNight = if(all(is.na(`night_total`))) NA_real_
       else mean(`night_total`, na.rm=TRUE),
       sdRumblesNight = if(all(is.na(`night_total`))) NA_real_
-      else sd(`night_total`, na.rm=TRUE),
+      else stats::sd(`night_total`, na.rm=TRUE),
       seRumblesNight = sdRumblesNight/sqrt(n),
       PropNightRumbles = round(sumRumblesNight/sumRumbles, digit = 3),
       SumRumblesPerDaysSampled = round(sumRumbles/n,digit=3),
@@ -692,7 +692,7 @@ data_summaries <- function (x) {
         MeanDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
         else mean(`total_rumbles`, na.rm=TRUE),
         sdDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
-        else sd(`total_rumbles`, na.rm=TRUE),
+        else stats::sd(`total_rumbles`, na.rm=TRUE),
         n = dplyr::n(),
         seDailyRumbles = sdDailyRumbles/sqrt(n),
         maxDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
@@ -706,7 +706,7 @@ data_summaries <- function (x) {
         meanRumblesNight = if(all(is.na(`night_total`))) NA_real_
         else mean(`night_total`, na.rm=TRUE),
         sdRumblesNight = if(all(is.na(`night_total`))) NA_real_
-        else sd(`night_total`, na.rm=TRUE),
+        else stats::sd(`night_total`, na.rm=TRUE),
         seRumblesNight = sdRumblesNight/sqrt(n),
         PropNightRumbles = round(sumRumblesNight/sumRumbles, digit = 3),
         SumRumblesPerDaysSampled = round(sumRumbles/n,digit=3),
@@ -828,7 +828,7 @@ data_summaries <- function (x) {
         MeanDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
         else mean(`total_rumbles`, na.rm=TRUE),
         sdDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
-        else sd(`total_rumbles`, na.rm=TRUE),
+        else stats::sd(`total_rumbles`, na.rm=TRUE),
         n = dplyr::n(),
         seDailyRumbles = sdDailyRumbles/sqrt(n),
         maxDailyRumbles = if(all(is.na(`total_rumbles`))) NA_real_
@@ -842,7 +842,7 @@ data_summaries <- function (x) {
         meanRumblesNight = if(all(is.na(`night_total`))) NA_real_
         else mean(`night_total`, na.rm=TRUE),
         sdRumblesNight = if(all(is.na(`night_total`))) NA_real_
-        else sd(`night_total`, na.rm=TRUE),
+        else stats::sd(`night_total`, na.rm=TRUE),
         seRumblesNight = sdRumblesNight/sqrt(n),
         PropNightRumbles = round(sumRumblesNight/sumRumbles, digit = 3),
         SumRumblesPerDaysSampled = round(sumRumbles/n,digit=3),
@@ -930,12 +930,12 @@ data_summaries <- function (x) {
 
   ##### mean daily per month by site #####
   rumble_monthly_means_site <- daily_site_summary %>%
-    dplyr::group_by(Year,Month,Site) %>%
+    dplyr::group_by(Year,Month,Site,across(all_of(site_info_names))) %>% #Site,WeekDate,across(all_of(site_info_names))
     dplyr::summarise(
       MeanDailyRumbles = if(all(is.na(total_rumbles))) NA_real_
       else mean(total_rumbles, na.rm=TRUE),
       sdDailyRumbles = if(all(is.na(total_rumbles))) NA_real_
-      else sd(total_rumbles, na.rm=TRUE),
+      else stats::sd(total_rumbles, na.rm=TRUE),
       n = n(),
       seDailyRumbles = sdDailyRumbles/sqrt(n),
       maxDailyRumbles = if(all(is.na(total_rumbles))) NA_real_
@@ -956,7 +956,7 @@ data_summaries <- function (x) {
   rumble_monthly_means_site <- rumble_monthly_means_site %>%
     arrange(Site, `Year-Month`) %>%
     dplyr::group_by(Site) %>%
-    mutate(month_group = cumsum(c(TRUE, diff(as.numeric(`Year-Month`)) > 31))) %>%
+    mutate(month_group = cumsum(c(TRUE, diff(as.numeric(`Year-Month`)) > 31))) %>% # mark months that are separated by >31 days as a new group and not consecutive month for the site
     ungroup()
   write.table(rumble_monthly_means_site,"PNNN_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_MonthlyMean_Site.txt",sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
 
@@ -990,6 +990,26 @@ data_summaries <- function (x) {
               rumble_monthly_means_site_plot,
               width = 10, height = 10, device = "eps")
 
+  ### Option to fill in the data gaps with dates and NA for stats on those dates
+  rumble_monthly_means_filled <- rumble_monthly_means_site %>%
+    group_by(Site) %>%
+    complete(
+      `Year-Month` = seq(min(`Year-Month`), max(`Year-Month`), by = "month")
+    ) %>%
+    # Fill static site/location info so they aren't NA
+    fill(Latitude, Longitude, `Vegetation Class`, Strata, .direction = "downup") %>%
+    ungroup() %>%
+    # Add Month / Year from the Year-Month date column
+    mutate(
+      Year = year(`Year-Month`),
+      Month = month(`Year-Month`),
+      # Replace NA in 'n' with 0
+      n = ifelse(is.na(n), 0L, n)
+    )
+  write.table(rumble_monthly_means_filled,paste0(proj_dep_name,"_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_MonthlyMean_Site_NAmonths.txt",sep="")
+              ,sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+
+
   ##### average rumbles per day by month #####
   rumble_monthly_means <- daily_site_summary %>%
     dplyr::group_by(Year,Month) %>%
@@ -997,7 +1017,7 @@ data_summaries <- function (x) {
       MeanDailyRumbles = if(all(is.na(total_rumbles))) NA_real_
       else mean(total_rumbles, na.rm=TRUE),
       sdDailyRumbles = if(all(is.na(total_rumbles))) NA_real_
-      else sd(total_rumbles, na.rm=TRUE),
+      else stats::sd(total_rumbles, na.rm=TRUE),
       n = n(),
       seDailyRumbles = sdDailyRumbles/sqrt(n),
       maxDailyRumbles = if(all(is.na(total_rumbles))) NA_real_
@@ -1014,7 +1034,8 @@ data_summaries <- function (x) {
     )
   sum(rumble_monthly_means$sumRumbles, na.rm=T) #36236
   rumble_monthly_means$`Year-Month` <- as.Date(paste(rumble_monthly_means$Year, rumble_monthly_means$Month, "01", sep = "-"))
-  write.table(rumble_monthly_means,"PNNN_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_MonthlyMean.txt",sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+  write.table(rumble_monthly_means,paste0(proj_dep_name,"_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_MonthlyMean.txt",sep="")
+              ,sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
 
   # Create complete time series
   all_dates <- seq.Date(
@@ -1109,7 +1130,8 @@ data_summaries <- function (x) {
      )
    sum(rumble_monthly_means_stratum$sumRumbles, na.rm=T) #36236
    rumble_monthly_means_stratum$`Year-Month` <- as.Date(paste(rumble_monthly_means_stratum$Year, rumble_monthly_means_stratum$Month, "01", sep = "-"))
-   write.table(rumble_monthly_means_stratum,"PNNN_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_MonthlyMean_Stratum.txt",sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+   write.table(rumble_monthly_means_stratum,paste0(proj_dep_name,"_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_MonthlyMean_Stratum.txt",sep=""),
+                                                   sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
   }
 
    #plot stratum separate
@@ -1314,6 +1336,42 @@ data_summaries <- function (x) {
   # clear memory from the plots
   # dev.off()
   # gc()
+
+  #### YEARLY SUMMARIES ####
+  rumble_yearly_summary <- rumble_monthly_means_filled %>%
+    group_by(
+      Site,
+      Year,
+      Strata,
+      Latitude,
+      Longitude,
+      `Vegetation Class`
+    ) %>%
+    summarise(
+      total_rumbles = sum(sumRumbles, na.rm = TRUE),
+      total_days_sampled = sum(n, na.rm = TRUE),
+      # NA if no data for that year
+      rumbles_per_day = ifelse(total_days_sampled > 0,
+                               total_rumbles / total_days_sampled,
+                               NA_real_),
+      .groups = "drop"
+    )
+  write.table(rumble_yearly_summary,paste0(proj_dep_name,"_Rumbles_ZeroDays_soundExcluded_3randDaysOnly_Yearly_Site.txt",sep=""),
+              sep='\t',na="",col.names=TRUE,row.names=FALSE, quote=FALSE, append=FALSE)
+
+  ggplot(rumble_yearly_summary, aes(x = factor(Year), y = rumbles_per_day, group = Site, color = Site)) +
+    geom_line(aes(group = 1), na.rm = TRUE) +
+    geom_point(na.rm = TRUE) +
+    facet_wrap(~ Site) +
+    labs(
+      title = "Average Rumbles per Day per Year by Site",
+      x = "Year",
+      y = "Rumbles per Day"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
 
 
   #### SITE SUMMARIES (MAP) ####
